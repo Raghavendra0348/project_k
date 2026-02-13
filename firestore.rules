@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // MACHINES COLLECTION
+    // ============================================
+    // Anyone can read machine data (needed for display)
+    // Only backend (admin SDK) can write
+    match /machines/{machineId} {
+      allow read: if true;
+      allow write: if false;  // Only server-side via Admin SDK
+    }
+    
+    // ============================================
+    // PRODUCTS COLLECTION
+    // ============================================
+    // Anyone can read products (needed for real-time display)
+    // Stock updates ONLY through backend after payment verification
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if false;  // Only server-side via Admin SDK
+    }
+    
+    // ============================================
+    // ORDERS COLLECTION
+    // ============================================
+    // Users can read their own orders (if we add auth later)
+    // Creation/updates only through backend
+    match /orders/{orderId} {
+      allow read: if true;  // For order status checking
+      allow write: if false;  // Only server-side via Admin SDK
+    }
+    
+    // ============================================
+    // DISPENSE QUEUE (Optional - for machine communication)
+    // ============================================
+    match /dispenseQueue/{queueId} {
+      allow read: if true;   // Machine can poll for dispense commands
+      allow write: if false; // Only server-side
+    }
+  }
+}
