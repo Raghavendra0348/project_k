@@ -16,11 +16,6 @@
  */
 export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/vending-machine-web/asia-south1/api';
 
-/**
- * Enable mock payment flow during local development
- */
-export const ENABLE_PAYMENT_SIMULATION = process.env.REACT_APP_ENABLE_PAYMENT_SIMULATION === 'true';
-
 // ============================================
 // RAZORPAY CONFIGURATION
 // ============================================

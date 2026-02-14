@@ -65,9 +65,6 @@ export const verifyPaymentHandler = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const isPaymentSimulationEnabled =
-      process.env.ENABLE_PAYMENT_SIMULATION === 'true';
-
     // ----------------------------------------
     // Step 1: Validate Input
     // ----------------------------------------
@@ -105,20 +102,11 @@ export const verifyPaymentHandler = async (
     // ----------------------------------------
     // THIS IS CRITICAL - Never trust frontend payment status
     /* eslint-disable camelcase */
-    let isValidSignature = false;
-
-    if (isPaymentSimulationEnabled) {
-      functions.logger.warn(
-        'Payment simulation enabled - skipping Razorpay signature verification',
-      );
-      isValidSignature = true;
-    } else {
-      isValidSignature = verifyPaymentSignature({
-        razorpayOrderId: razorpay_order_id,
-        razorpayPaymentId: razorpay_payment_id,
-        razorpaySignature: razorpay_signature,
-      });
-    }
+    const isValidSignature = verifyPaymentSignature({
+      razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpaySignature: razorpay_signature,
+    });
 
     if (!isValidSignature) {
       functions.logger.error(
@@ -235,30 +223,28 @@ export const verifyPaymentHandler = async (
 
       // Special handling for out of stock
       if (errorMessage.includes('out of stock')) {
-        // Initiate Razorpay refund (skip during simulation)
+        // Initiate Razorpay refund
         let refundId: string | null = null;
-        if (!isPaymentSimulationEnabled) {
-          try {
-            const razorpay = getRazorpayInstance();
-            const refund = await razorpay.payments.refund(
-              razorpay_payment_id,
-              {
-                speed: 'normal',
-                notes: {
-                  reason: 'Product out of stock during transaction',
-                  orderId: internalOrderId,
-                },
+        try {
+          const razorpay = getRazorpayInstance();
+          const refund = await razorpay.payments.refund(
+            razorpay_payment_id,
+            {
+              speed: 'normal',
+              notes: {
+                reason: 'Product out of stock during transaction',
+                orderId: internalOrderId,
               },
-            );
-            refundId = refund.id;
-            functions.logger.info('Refund initiated successfully', {
-              refundId: refund.id,
-              paymentId: razorpay_payment_id,
-              orderId: internalOrderId,
-            });
-          } catch (refundError) {
-            functions.logger.error('Refund initiation failed:', refundError);
-          }
+            },
+          );
+          refundId = refund.id;
+          functions.logger.info('Refund initiated successfully', {
+            refundId: refund.id,
+            paymentId: razorpay_payment_id,
+            orderId: internalOrderId,
+          });
+        } catch (refundError) {
+          functions.logger.error('Refund initiation failed:', refundError);
         }
 
         await db.collection('orders').doc(internalOrderId).update({
