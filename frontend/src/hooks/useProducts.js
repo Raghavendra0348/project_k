@@ -16,8 +16,7 @@ import {
         collection,
         query,
         where,
-        onSnapshot,
-        orderBy
+        onSnapshot
 } from 'firebase/firestore';
 import { db } from '../services/firebase';
 
@@ -75,8 +74,7 @@ const useProducts = (machineId) => {
                 const productsRef = collection(db, 'products');
                 const productsQuery = query(
                         productsRef,
-                        where('machineId', '==', machineId),
-                        orderBy('name', 'asc')
+                        where('machineId', '==', machineId)
                 );
 
                 // Subscribe to real-time updates
@@ -104,6 +102,9 @@ const useProducts = (machineId) => {
                                                 console.log(`Stock update: ${product.name} ${prevStock} → ${product.stock}`);
                                         }
                                 });
+
+                                // Sort products by name (client-side)
+                                updatedProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
                                 setPreviousStock(newStockValues);
                                 setProducts(updatedProducts);

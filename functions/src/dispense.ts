@@ -16,7 +16,7 @@
 import { Request, Response } from 'express';
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import { db } from './firebase';
+import { db, FieldValue } from './firebase';
 import { validateDispenseInput, logValidationError } from './utils/validation';
 
 // ============================================
@@ -133,7 +133,7 @@ export const dispenseHandler = async (
       productId,
       status: 'pending',
       command: 'DISPENSE',
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
       expiresAt: admin.firestore.Timestamp.fromDate(
         new Date(Date.now() + 5 * 60 * 1000), // Expires in 5 minutes
       ),
@@ -147,7 +147,7 @@ export const dispenseHandler = async (
     await orderRef.update({
       dispenseInitiated: true,
       dispenseQueueId: dispenseRef.id,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
     functions.logger.info('Dispense command queued', {
@@ -229,7 +229,7 @@ export const dispenseConfirmHandler = async (
     // Update dispense status
     await dispenseRef.update({
       status: status === 'success' ? 'completed' : 'failed',
-      confirmedAt: admin.firestore.FieldValue.serverTimestamp(),
+      confirmedAt: FieldValue.serverTimestamp(),
       errorCode: errorCode || null,
     });
 
@@ -237,8 +237,8 @@ export const dispenseConfirmHandler = async (
     if (status === 'success') {
       await db.collection('orders').doc(dispenseData.orderId).update({
         dispensed: true,
-        dispensedAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        dispensedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       });
     }
 

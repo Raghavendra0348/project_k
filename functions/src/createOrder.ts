@@ -15,8 +15,7 @@
 
 import { Request, Response } from 'express';
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
-import { db } from './firebase';
+import { db, FieldValue } from './firebase';
 import { createRazorpayOrder, getRazorpayKeyId } from './utils/razorpay';
 import {
   validateCreateOrderInput,
@@ -157,8 +156,8 @@ export const createOrderHandler = async (
       razorpayPaymentId: null,
       paymentStatus: 'pending' as const,
       dispensed: false,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     };
 
     const orderRef = await db.collection('orders').add(orderData);

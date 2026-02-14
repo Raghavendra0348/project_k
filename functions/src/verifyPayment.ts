@@ -24,8 +24,7 @@
 
 import { Request, Response } from 'express';
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
-import { db } from './firebase';
+import { db, FieldValue } from './firebase';
 import { verifyPaymentSignature } from './utils/razorpay';
 import {
   validateVerifyPaymentInput,
@@ -124,7 +123,7 @@ export const verifyPaymentHandler = async (
       await db.collection('orders').doc(internalOrderId).update({
         paymentStatus: 'failed',
         failureReason: 'Signature verification failed',
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       });
 
       res.status(400).json({
@@ -195,8 +194,8 @@ export const verifyPaymentHandler = async (
 
         // 1. Reduce stock by 1
         transaction.update(productRef, {
-          stock: admin.firestore.FieldValue.increment(-1),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          stock: FieldValue.increment(-1),
+          updatedAt: FieldValue.serverTimestamp(),
         });
 
         // 2. Update order status to success
@@ -204,8 +203,8 @@ export const verifyPaymentHandler = async (
           paymentStatus: 'success',
           // eslint-disable-next-line camelcase
           razorpayPaymentId: razorpay_payment_id,
-          verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          verifiedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
         });
 
         functions.logger.info('Transaction completed successfully', {
@@ -230,7 +229,7 @@ export const verifyPaymentHandler = async (
           paymentStatus: 'failed',
           failureReason: 'Out of stock during transaction',
           needsRefund: true,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
         });
 
         res.status(400).json({
