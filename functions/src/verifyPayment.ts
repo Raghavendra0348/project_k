@@ -25,7 +25,7 @@
 import { Request, Response } from 'express';
 import * as functions from 'firebase-functions';
 import { db, FieldValue } from './firebase';
-import { verifyPaymentSignature } from './utils/razorpay';
+import { verifyPaymentSignature, getRazorpayInstance } from './utils/razorpay';
 import {
   validateVerifyPaymentInput,
   logValidationError,
@@ -223,12 +223,33 @@ export const verifyPaymentHandler = async (
 
       // Special handling for out of stock
       if (errorMessage.includes('out of stock')) {
-        // Refund should be initiated here in production
-        // For now, mark order as failed
+        // Initiate Razorpay refund
+        let refundId: string | null = null;
+        try {
+          const razorpay = getRazorpayInstance();
+          const refund = await razorpay.payments.refund(razorpay_payment_id, {
+            speed: 'normal',
+            notes: {
+              reason: 'Product out of stock during transaction',
+              orderId: internalOrderId,
+            },
+          });
+          refundId = refund.id;
+          functions.logger.info('Refund initiated successfully', {
+            refundId: refund.id,
+            paymentId: razorpay_payment_id,
+            orderId: internalOrderId,
+          });
+        } catch (refundError) {
+          functions.logger.error('Refund initiation failed:', refundError);
+        }
+
         await db.collection('orders').doc(internalOrderId).update({
           paymentStatus: 'failed',
           failureReason: 'Out of stock during transaction',
-          needsRefund: true,
+          needsRefund: !refundId,
+          refundId: refundId || null,
+          refundStatus: refundId ? 'initiated' : 'pending',
           updatedAt: FieldValue.serverTimestamp(),
         });
 

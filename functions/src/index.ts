@@ -8,12 +8,12 @@
 import * as functions from 'firebase-functions';
 import cors from 'cors';
 import express from 'express';
-import { db, adminSDK as admin } from './firebase';
+import { db, FieldValue } from './firebase';
 
 // Import function handlers
 import { createOrderHandler } from './createOrder';
 import { verifyPaymentHandler } from './verifyPayment';
-import { dispenseHandler } from './dispense';
+import { dispenseHandler, dispenseConfirmHandler } from './dispense';
 import { healthCheckHandler } from './health';
 
 // ============================================
@@ -21,9 +21,16 @@ import { healthCheckHandler } from './health';
 // ============================================
 const app = express();
 
-// Configure CORS to allow requests from any origin (for QR code scanning from any device)
+// Configure CORS - restrict origins in production, allow all in development
+const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
+  ? process.env.CORS_ALLOWED_ORIGINS.split(',')
+  : [];
+
 const corsOptions: cors.CorsOptions = {
-  origin: true, // Allow all origins in development; restrict in production
+  origin:
+    process.env.NODE_ENV === 'production' && allowedOrigins.length > 0
+      ? allowedOrigins
+      : true, // Allow all origins in development
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -72,6 +79,14 @@ app.post('/verifyPayment', verifyPaymentHandler);
  * Returns: { success: boolean, message: string }
  */
 app.post('/dispense', dispenseHandler);
+
+/**
+ * Dispense Confirmation (From Vending Machine)
+ * POST /dispense/confirm
+ * Body: { dispenseId: string, machineId: string, status: 'success' | 'failed' }
+ * Returns: { success: boolean, message: string }
+ */
+app.post('/dispense/confirm', dispenseConfirmHandler);
 
 // ============================================
 // EXPORT CLOUD FUNCTION
@@ -144,7 +159,7 @@ export const onPaymentSuccess = functions
         machineId: after.machineId,
         productId: after.productId,
         status: 'pending',
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
       });
     }
 

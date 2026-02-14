@@ -25,15 +25,19 @@ function App() {
                         <Toaster
                                 position="top-center"
                                 toastOptions={{
-                                        // Default options for all toasts
                                         duration: 4000,
                                         style: {
-                                                background: '#333',
-                                                color: '#fff',
-                                                borderRadius: '10px',
-                                                padding: '16px',
+                                                background: 'rgba(255, 255, 255, 0.85)',
+                                                backdropFilter: 'blur(20px)',
+                                                WebkitBackdropFilter: 'blur(20px)',
+                                                color: '#1f2937',
+                                                borderRadius: '16px',
+                                                padding: '14px 18px',
+                                                border: '1px solid rgba(255, 255, 255, 0.6)',
+                                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255,255,255,0.6)',
+                                                fontSize: '14px',
+                                                fontWeight: '500',
                                         },
-                                        // Specific options by type
                                         success: {
                                                 iconTheme: {
                                                         primary: '#10b981',

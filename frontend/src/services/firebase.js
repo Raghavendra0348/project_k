@@ -17,12 +17,12 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
  * Values come from environment variables for security
  */
 const firebaseConfig = {
-  apiKey: "AIzaSyDuE7R5NI01rQdYY5BrPKfoMqK9bcRYo84",
-  authDomain: "vending-machine-web.firebaseapp.com",
-  projectId: "vending-machine-web",
-  storageBucket: "vending-machine-web.firebasestorage.app",
-  messagingSenderId: "188303260362",
-  appId: "1:188303260362:web:bbecd754740724c0cdd233"
+        apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+        authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
 
 // ============================================

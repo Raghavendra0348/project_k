@@ -127,7 +127,91 @@ const products = [
       machineId: 'machine-001',
       imageUrl:
         'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=200',
+      category: 'water',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+  },
+  {
+    id: 'prod-008',
+    data: {
+      name: 'Snickers Bar',
+      price: 35,
+      stock: 18,
+      machineId: 'machine-001',
+      imageUrl:
+        'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=200',
+      category: 'chocolates',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+  },
+  {
+    id: 'prod-009',
+    data: {
+      name: 'Dairy Milk Chocolate',
+      price: 40,
+      stock: 22,
+      machineId: 'machine-001',
+      imageUrl:
+        'https://images.unsplash.com/photo-1511381939415-e44015466834?w=200',
+      category: 'chocolates',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+  },
+  {
+    id: 'prod-010',
+    data: {
+      name: 'Pringles Original',
+      price: 60,
+      stock: 10,
+      machineId: 'machine-001',
+      imageUrl:
+        'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=200',
+      category: 'snacks',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+  },
+  {
+    id: 'prod-011',
+    data: {
+      name: 'Frooti Mango Drink',
+      price: 30,
+      stock: 20,
+      machineId: 'machine-001',
+      imageUrl:
+        'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=200',
       category: 'beverages',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+  },
+  {
+    id: 'prod-012',
+    data: {
+      name: 'Kurkure Masala Munch',
+      price: 20,
+      stock: 14,
+      machineId: 'machine-001',
+      imageUrl:
+        'https://images.unsplash.com/photo-1613919113640-25732ec5e61f?w=200',
+      category: 'snacks',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+  },
+  {
+    id: 'prod-013',
+    data: {
+      name: 'Bisleri Water 500ml',
+      price: 20,
+      stock: 30,
+      machineId: 'machine-001',
+      imageUrl:
+        'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=200',
+      category: 'water',
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     },
@@ -158,6 +242,76 @@ const products = [
       imageUrl:
         'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?w=200',
       category: 'snacks',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+  },
+  {
+    id: 'prod-014',
+    data: {
+      name: 'Sprite 500ml',
+      price: 40,
+      stock: 16,
+      machineId: 'machine-002',
+      imageUrl:
+        'https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?w=200',
+      category: 'beverages',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+  },
+  {
+    id: 'prod-015',
+    data: {
+      name: 'Mars Bar',
+      price: 38,
+      stock: 12,
+      machineId: 'machine-002',
+      imageUrl:
+        'https://images.unsplash.com/photo-1595495055755-1117d0572a87?w=200',
+      category: 'chocolates',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+  },
+  {
+    id: 'prod-016',
+    data: {
+      name: 'Aquafina Water 1L',
+      price: 25,
+      stock: 20,
+      machineId: 'machine-002',
+      imageUrl:
+        'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=200',
+      category: 'water',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+  },
+  {
+    id: 'prod-017',
+    data: {
+      name: 'Doritos Nacho Cheese',
+      price: 55,
+      stock: 8,
+      machineId: 'machine-002',
+      imageUrl:
+        'https://images.unsplash.com/photo-1613919113640-25732ec5e61f?w=200',
+      category: 'snacks',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+  },
+  {
+    id: 'prod-018',
+    data: {
+      name: 'Monster Energy',
+      price: 130,
+      stock: 7,
+      machineId: 'machine-002',
+      imageUrl:
+        'https://images.unsplash.com/photo-1622543925917-763c34f5a006?w=200',
+      category: 'beverages',
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     },

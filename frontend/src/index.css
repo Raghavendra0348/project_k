@@ -7,55 +7,140 @@
    BASE STYLES
    ============================================ */
 
-/* Apply Inter font globally */
 body {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
 }
 
-/* Prevent pull-to-refresh on mobile */
 html,
 body {
         overscroll-behavior-y: contain;
 }
 
-/* Remove tap highlight on mobile */
 * {
         -webkit-tap-highlight-color: transparent;
 }
 
 /* ============================================
-   CUSTOM COMPONENTS
+   MESH GRADIENT BACKGROUND
+   ============================================ */
+
+.mesh-gradient {
+        background-color: #f0f0ff;
+        background-image:
+                radial-gradient(at 20% 20%, rgba(129, 140, 248, 0.25) 0px, transparent 55%),
+                radial-gradient(at 80% 10%, rgba(167, 139, 250, 0.2) 0px, transparent 50%),
+                radial-gradient(at 60% 60%, rgba(99, 102, 241, 0.15) 0px, transparent 55%),
+                radial-gradient(at 10% 80%, rgba(139, 92, 246, 0.18) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(129, 140, 248, 0.22) 0px, transparent 50%),
+                radial-gradient(at 40% 30%, rgba(196, 181, 253, 0.15) 0px, transparent 45%);
+        min-height: 100vh;
+}
+
+/* ============================================
+   GLASSMORPHISM COMPONENTS
    ============================================ */
 
 @layer components {
 
+        /* Glass card base */
+        .glass {
+                @apply bg-white/50 backdrop-blur-xl border border-white/60 rounded-2xl;
+                box-shadow:
+                        0 8px 32px rgba(0, 0, 0, 0.06),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.6);
+        }
+
+        .glass-strong {
+                @apply bg-white/70 backdrop-blur-2xl border border-white/70 rounded-2xl;
+                box-shadow:
+                        0 8px 32px rgba(0, 0, 0, 0.08),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.8);
+        }
+
+        .glass-dark {
+                @apply bg-white/30 backdrop-blur-xl border border-white/30 rounded-2xl;
+                box-shadow:
+                        0 8px 32px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.3);
+        }
+
         /* Product Card Styles */
         .product-card {
-                @apply bg-white rounded-xl shadow-product transition-all duration-300 overflow-hidden;
+                @apply bg-white/50 backdrop-blur-xl border border-white/60 rounded-2xl overflow-hidden;
+                box-shadow:
+                        0 4px 24px rgba(0, 0, 0, 0.05),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.6);
+                transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .product-card:hover {
-                @apply shadow-product-hover transform -translate-y-1;
+                @apply border-white/80;
+                transform: translateY(-6px);
+                box-shadow:
+                        0 20px 60px rgba(99, 102, 241, 0.12),
+                        0 8px 24px rgba(0, 0, 0, 0.08),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.8);
         }
 
-        /* Buy Button */
+        /* Buy Button - Vibrant Gradient with Glow */
         .btn-buy {
-                @apply w-full py-3 px-4 bg-primary-600 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2;
+                @apply w-full py-3.5 px-5 text-white font-semibold rounded-xl flex items-center justify-center gap-2;
+                background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+                box-shadow:
+                        0 4px 16px rgba(99, 102, 241, 0.35),
+                        0 1px 3px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .btn-buy:hover:not(:disabled) {
-                @apply bg-primary-700 transform scale-[1.02];
+                transform: translateY(-1px) scale(1.02);
+                box-shadow:
+                        0 8px 28px rgba(99, 102, 241, 0.45),
+                        0 2px 6px rgba(0, 0, 0, 0.12),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-buy:active:not(:disabled) {
+                transform: translateY(0) scale(0.98);
         }
 
         .btn-buy:disabled {
-                @apply bg-gray-400 cursor-not-allowed opacity-70;
+                @apply cursor-not-allowed opacity-60;
+                background: linear-gradient(135deg, #9ca3af, #9ca3af);
+                box-shadow: none;
+        }
+
+        /* CTA Button - Extra glow */
+        .btn-cta {
+                @apply inline-flex items-center gap-3 px-8 py-4 text-white font-bold text-lg rounded-2xl;
+                background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+                box-shadow:
+                        0 8px 32px rgba(99, 102, 241, 0.4),
+                        0 2px 8px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.25);
+                transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-cta:hover {
+                transform: translateY(-3px) scale(1.03);
+                box-shadow:
+                        0 16px 48px rgba(99, 102, 241, 0.5),
+                        0 4px 12px rgba(0, 0, 0, 0.12),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.35);
+        }
+
+        .btn-cta:active {
+                transform: translateY(0) scale(0.98);
         }
 
         /* Out of Stock Badge */
         .badge-out-of-stock {
-                @apply absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full;
+                @apply absolute top-3 right-3 text-white text-xs font-bold px-3 py-1.5 rounded-full;
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
         }
 
         /* Stock Indicator */
@@ -64,34 +149,60 @@ body {
         }
 
         .stock-high {
-                @apply text-green-600;
+                @apply text-emerald-600;
         }
 
         .stock-low {
-                @apply text-yellow-600;
+                @apply text-amber-600;
         }
 
         .stock-critical {
-                @apply text-red-600;
+                @apply text-red-500;
         }
 
         /* Loading Skeleton */
         .skeleton {
-                @apply animate-pulse bg-gray-200 rounded;
+                @apply animate-pulse bg-white/40 rounded-xl backdrop-blur;
         }
 
         /* Status Badge */
         .status-online {
-                @apply inline-flex items-center gap-1 text-green-600 text-sm font-medium;
+                @apply inline-flex items-center gap-1.5 text-emerald-600 text-sm font-medium;
         }
 
         .status-offline {
-                @apply inline-flex items-center gap-1 text-red-600 text-sm font-medium;
+                @apply inline-flex items-center gap-1.5 text-red-500 text-sm font-medium;
         }
 
         /* Page Container */
         .page-container {
-                @apply min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100;
+                @apply mesh-gradient min-h-screen;
+        }
+
+        /* Glass Icon Container */
+        .glass-icon {
+                @apply relative flex items-center justify-center rounded-2xl;
+                background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                box-shadow:
+                        0 4px 16px rgba(99, 102, 241, 0.15),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.5);
+        }
+
+        .glass-icon-blue {
+                background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(129, 140, 248, 0.1));
+        }
+
+        .glass-icon-green {
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.1));
+        }
+
+        .glass-icon-purple {
+                background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(167, 139, 250, 0.1));
+        }
+
+        .glass-icon-amber {
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1));
         }
 }
 
@@ -103,7 +214,7 @@ body {
 
         /* Real-time update flash */
         .flash-update {
-                animation: flash 0.5s ease-in-out;
+                animation: flash 0.6s ease-in-out;
         }
 
         @keyframes flash {
@@ -114,7 +225,7 @@ body {
                 }
 
                 50% {
-                        background-color: rgba(59, 130, 246, 0.2);
+                        background-color: rgba(99, 102, 241, 0.15);
                 }
         }
 
@@ -131,36 +242,19 @@ body {
                 }
 
                 50% {
-                        transform: scale(1.2);
+                        transform: scale(1.15);
                 }
         }
 
-        /* Fade in animation */
-        .animate-fade-in {
-                animation: fadeIn 0.3s ease-in-out;
+        /* Slide down animation for filter panel */
+        .animate-slide-down {
+                animation: slideDown 0.3s ease-out;
         }
 
-        @keyframes fadeIn {
+        @keyframes slideDown {
                 from {
                         opacity: 0;
-                        transform: translateY(10px);
-                }
-
-                to {
-                        opacity: 1;
-                        transform: translateY(0);
-                }
-        }
-
-        /* Slide up animation for modals */
-        .animate-slide-up {
-                animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-                from {
-                        opacity: 0;
-                        transform: translateY(100%);
+                        transform: translateY(-10px);
                 }
 
                 to {
@@ -174,47 +268,231 @@ body {
    RAZORPAY MODAL CUSTOMIZATION
    ============================================ */
 
-/* Ensure Razorpay modal appears above everything */
 .razorpay-container {
         z-index: 9999 !important;
-}
-
-/* ============================================
-   TOAST CUSTOMIZATION
-   ============================================ */
-
-/* Custom toast styles */
-.toast-success {
-        @apply bg-green-500 text-white;
-}
-
-.toast-error {
-        @apply bg-red-500 text-white;
 }
 
 /* ============================================
    SCROLLBAR STYLING
    ============================================ */
 
-/* Custom scrollbar for webkit browsers */
 ::-webkit-scrollbar {
         width: 6px;
         height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-        @apply bg-gray-100 rounded;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-        @apply bg-gray-300 rounded hover:bg-gray-400;
+        background: rgba(99, 102, 241, 0.2);
+        border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+        background: rgba(99, 102, 241, 0.35);
+}
+
+/* ============================================
+   QR SCANNER CORNER BRACKETS
+   ============================================ */
+
+/* Corner brackets for scanner modal */
+.qr-corners {
+        position: relative;
+}
+
+.qr-corners::before,
+.qr-corners::after {
+        content: '';
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        border: 3px solid #10b981;
+        /* green-500 */
+        animation: cornerPulse 2s ease-in-out infinite;
+}
+
+/* Top-left corner */
+.qr-corners::before {
+        top: 0;
+        left: 0;
+        border-right: none;
+        border-bottom: none;
+        border-top-left-radius: 8px;
+}
+
+/* Bottom-right corner */
+.qr-corners::after {
+        bottom: 0;
+        right: 0;
+        border-left: none;
+        border-top: none;
+        border-bottom-right-radius: 8px;
+        animation-delay: 0.3s;
+}
+
+/* Top-right corner (pseudo on wrapper div) */
+.qr-corners {
+        --qr-border-color: #10b981;
+}
+
+.qr-corners::after {
+        box-shadow:
+                40px -40px 0 -37px var(--qr-border-color),
+                -40px 40px 0 -37px var(--qr-border-color);
+}
+
+/* Hero card QR corners - larger and animated */
+.qr-corners-hero::before,
+.qr-corners-hero::after {
+        content: '';
+        position: absolute;
+        width: 48px;
+        height: 48px;
+        border: 4px solid #10b981;
+        animation: cornerGlow 2.5s ease-in-out infinite;
+        z-index: 10;
+}
+
+.qr-corners-hero::before {
+        top: -4px;
+        left: -4px;
+        border-right: none;
+        border-bottom: none;
+        border-top-left-radius: 12px;
+}
+
+.qr-corners-hero::after {
+        bottom: -4px;
+        right: -4px;
+        border-left: none;
+        border-top: none;
+        border-bottom-right-radius: 12px;
+        animation-delay: 0.4s;
+}
+
+.qr-corners-hero {
+        position: relative;
+}
+
+/* Animated scanning line effect */
+@keyframes scanLine {
+
+        0%,
+        100% {
+                transform: translateY(-100%);
+                opacity: 0;
+        }
+
+        10% {
+                opacity: 0.6;
+        }
+
+        50% {
+                transform: translateY(0);
+                opacity: 0.8;
+        }
+
+        90% {
+                opacity: 0.6;
+        }
+}
+
+@keyframes cornerPulse {
+
+        0%,
+        100% {
+                opacity: 1;
+                filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.5));
+        }
+
+        50% {
+                opacity: 0.7;
+                filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.8));
+        }
+}
+
+@keyframes cornerGlow {
+
+        0%,
+        100% {
+                opacity: 1;
+                filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.6));
+                border-color: #10b981;
+        }
+
+        50% {
+                opacity: 0.85;
+                filter: drop-shadow(0 0 12px rgba(16, 185, 129, 1));
+                border-color: #34d399;
+                /* green-400 */
+        }
+}
+
+/* ============================================
+   RANGE SLIDER STYLING
+   ============================================ */
+
+/* Range slider track */
+input[type="range"].slider {
+        -webkit-appearance: none;
+        appearance: none;
+        background: linear-gradient(to right, #6366f1 0%, #8b5cf6 100%);
+        outline: none;
+        border-radius: 8px;
+        height: 6px;
+}
+
+/* Range slider thumb - WebKit */
+input[type="range"].slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: white;
+        border: 3px solid #6366f1;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        transition: all 0.2s ease;
+}
+
+input[type="range"].slider::-webkit-slider-thumb:hover {
+        transform: scale(1.15);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
+}
+
+/* Range slider thumb - Firefox */
+input[type="range"].slider::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: white;
+        border: 3px solid #6366f1;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        transition: all 0.2s ease;
+}
+
+input[type="range"].slider::-moz-range-thumb:hover {
+        transform: scale(1.15);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
+}
+
+/* Range slider track - Firefox */
+input[type="range"].slider::-moz-range-track {
+        background: linear-gradient(to right, #6366f1 0%, #8b5cf6 100%);
+        border-radius: 8px;
+        height: 6px;
 }
 
 /* ============================================
    RESPONSIVE ADJUSTMENTS
    ============================================ */
 
-/* Safe area insets for notched phones */
 @supports (padding: max(0px)) {
         .safe-area-padding {
                 padding-left: max(1rem, env(safe-area-inset-left));
