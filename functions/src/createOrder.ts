@@ -43,6 +43,7 @@ interface CreateOrderResponse {
   currency?: string;
   keyId?: string; // Razorpay public key ID
   productName?: string;
+  mockPayment?: boolean;
   error?: string;
 }
 
@@ -55,6 +56,9 @@ export const createOrderHandler = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const isPaymentSimulationEnabled =
+      process.env.ENABLE_PAYMENT_SIMULATION === 'true';
+
     // ----------------------------------------
     // Step 1: Validate Input
     // ----------------------------------------
@@ -129,19 +133,30 @@ export const createOrderHandler = async (
     // Convert price from rupees to paise (Razorpay expects smallest currency unit)
     const amountInPaise = Math.round(product.price * 100);
 
-    // Generate unique receipt ID
-    const receiptId = `rcpt_${machineId}_${productId}_${Date.now()}`;
+    // Generate unique receipt ID (max 40 chars as per Razorpay)
+    const timestamp = Date.now().toString().slice(-8); // Last 8 digits
+    const receiptId = `vm_${machineId}_${timestamp}`.slice(0, 40);
 
-    const razorpayOrder = await createRazorpayOrder({
-      amount: amountInPaise,
-      currency: 'INR',
-      receipt: receiptId,
-      notes: {
-        productId,
-        machineId,
-        productName: product.name,
-      },
-    });
+    let razorpayOrderId: string;
+
+    if (isPaymentSimulationEnabled) {
+      functions.logger.warn(
+        'Payment simulation enabled - skipping Razorpay order creation',
+      );
+      razorpayOrderId = `order_sim_${Date.now()}`;
+    } else {
+      const razorpayOrder = await createRazorpayOrder({
+        amount: amountInPaise,
+        currency: 'INR',
+        receipt: receiptId,
+        notes: {
+          productId,
+          machineId,
+          productName: product.name,
+        },
+      });
+      razorpayOrderId = razorpayOrder.id;
+    }
 
     // ----------------------------------------
     // Step 6: Create Pending Order in Firestore
@@ -152,7 +167,7 @@ export const createOrderHandler = async (
       productName: product.name,
       amount: amountInPaise,
       currency: 'INR',
-      razorpayOrderId: razorpayOrder.id,
+      razorpayOrderId,
       razorpayPaymentId: null,
       paymentStatus: 'pending' as const,
       dispensed: false,
@@ -164,8 +179,9 @@ export const createOrderHandler = async (
 
     functions.logger.info('Order created successfully', {
       orderId: orderRef.id,
-      razorpayOrderId: razorpayOrder.id,
+      razorpayOrderId,
       amount: amountInPaise,
+      paymentSimulation: isPaymentSimulationEnabled,
     });
 
     // ----------------------------------------
@@ -174,11 +190,12 @@ export const createOrderHandler = async (
     const response: CreateOrderResponse = {
       success: true,
       orderId: orderRef.id,
-      razorpayOrderId: razorpayOrder.id,
+      razorpayOrderId,
       amount: amountInPaise,
       currency: 'INR',
       keyId: getRazorpayKeyId(),
       productName: product.name,
+      mockPayment: isPaymentSimulationEnabled,
     };
 
     res.status(200).json(response);

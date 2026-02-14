@@ -44,6 +44,8 @@ import { API_BASE_URL } from '../config/constants';
  */
 export const createOrder = async (productId, machineId) => {
         try {
+                console.log('📡 [API] Creating order:', { productId, machineId, url: `${API_BASE_URL}/createOrder` });
+                
                 const response = await fetch(`${API_BASE_URL}/createOrder`, {
                         method: 'POST',
                         headers: {
@@ -56,6 +58,7 @@ export const createOrder = async (productId, machineId) => {
                 });
 
                 const data = await response.json();
+                console.log('📡 [API] Create order response:', { status: response.status, data });
 
                 if (!response.ok) {
                         throw new Error(data.error || 'Failed to create order');
@@ -63,7 +66,7 @@ export const createOrder = async (productId, machineId) => {
 
                 return data;
         } catch (error) {
-                console.error('Error creating order:', error);
+                console.error('❌ [API] Error creating order:', error);
                 throw error;
         }
 };

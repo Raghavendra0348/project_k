@@ -152,9 +152,14 @@ export const validateVerifyPaymentInput = (body: unknown): ValidationResult => {
   }
 
   const input = body as Record<string, unknown>;
+  const allowSimulation = process.env.ENABLE_PAYMENT_SIMULATION === 'true';
 
   // Validate Razorpay order ID
-  if (!isValidRazorpayOrderId(input.razorpay_order_id)) {
+  const orderIdValid =
+    isValidRazorpayOrderId(input.razorpay_order_id) ||
+    (allowSimulation && isValidString(input.razorpay_order_id, 3, 200));
+
+  if (!orderIdValid) {
     return {
       isValid: false,
       error: 'Invalid razorpay_order_id format',
@@ -162,7 +167,11 @@ export const validateVerifyPaymentInput = (body: unknown): ValidationResult => {
   }
 
   // Validate Razorpay payment ID
-  if (!isValidRazorpayPaymentId(input.razorpay_payment_id)) {
+  const paymentIdValid =
+    isValidRazorpayPaymentId(input.razorpay_payment_id) ||
+    (allowSimulation && isValidString(input.razorpay_payment_id, 3, 200));
+
+  if (!paymentIdValid) {
     return {
       isValid: false,
       error: 'Invalid razorpay_payment_id format',
@@ -170,7 +179,11 @@ export const validateVerifyPaymentInput = (body: unknown): ValidationResult => {
   }
 
   // Validate Razorpay signature
-  if (!isValidRazorpaySignature(input.razorpay_signature)) {
+  const signatureValid =
+    isValidRazorpaySignature(input.razorpay_signature) ||
+    (allowSimulation && isValidString(input.razorpay_signature, 3, 500));
+
+  if (!signatureValid) {
     return {
       isValid: false,
       error: 'Invalid razorpay_signature format',

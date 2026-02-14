@@ -30,65 +30,14 @@ import { createOrder, verifyPayment, dispenseProduct } from '../services/api';
 import { openRazorpayCheckout } from '../services/razorpay';
 
 // Constants
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../config/constants';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, ENABLE_PAYMENT_SIMULATION } from '../config/constants';
 
 // Icons for FilterBar
-import { Search, X, RotateCcw, Coffee, Cookie, Droplet, Candy, Beef, Grid3x3, ArrowUpDown } from 'lucide-react';
+import { Search, X, SlidersHorizontal, Package } from 'lucide-react';
 
 /**
- * Category icon and info mapping
- */
-const CATEGORY_CONFIG = {
-        beverages: {
-                icon: Coffee,
-                label: 'Beverages',
-                emoji: '☕',
-                color: 'from-blue-400 to-cyan-500',
-                bgColor: 'bg-blue-50',
-                textColor: 'text-blue-600',
-                borderColor: 'border-blue-200',
-        },
-        snacks: {
-                icon: Cookie,
-                label: 'Snacks',
-                emoji: '🍪',
-                color: 'from-amber-400 to-orange-500',
-                bgColor: 'bg-amber-50',
-                textColor: 'text-amber-600',
-                borderColor: 'border-amber-200',
-        },
-        chocolates: {
-                icon: Candy,
-                label: 'Chocolates',
-                emoji: '🍫',
-                color: 'from-purple-400 to-pink-500',
-                bgColor: 'bg-purple-50',
-                textColor: 'text-purple-600',
-                borderColor: 'border-purple-200',
-        },
-        water: {
-                icon: Droplet,
-                label: 'Water',
-                emoji: '💧',
-                color: 'from-cyan-400 to-blue-500',
-                bgColor: 'bg-cyan-50',
-                textColor: 'text-cyan-600',
-                borderColor: 'border-cyan-200',
-        },
-        food: {
-                icon: Beef,
-                label: 'Food Items',
-                emoji: '🍔',
-                color: 'from-red-400 to-orange-500',
-                bgColor: 'bg-red-50',
-                textColor: 'text-red-600',
-                borderColor: 'border-red-200',
-        },
-};
-
-/**
- * FilterBar Component
- * Provides category-based filtering with search and advanced options
+ * Simple FilterBar Component
+ * Clean and minimal filtering - ALL products visible by default
  */
 const FilterBar = ({
         searchQuery,
@@ -96,235 +45,70 @@ const FilterBar = ({
         selectedCategory,
         onCategoryChange,
         categories,
-        getCategoryCount,
-        sortBy,
-        onSortChange,
-        priceRange,
-        onPriceRangeChange,
-        maxPrice,
-        stockFilter,
-        onStockFilterChange,
-        showAdvancedFilters,
-        onToggleAdvancedFilters,
-        onResetFilters,
         totalProducts,
         filteredCount,
 }) => {
-        const hasActiveFilters = searchQuery || selectedCategory !== 'all' || sortBy !== 'name' || priceRange[0] > 0 || priceRange[1] < maxPrice || stockFilter !== 'all';
-
         return (
-                <div className="space-y-4 animate-fade-in">
-                        {/* Search Bar */}
-                        <div className="glass-strong p-4">
+                <div className="glass-strong p-4 animate-fade-in">
+                        <div className="flex flex-col gap-4">
+                                {/* Top row: Search and stats */}
                                 <div className="flex items-center gap-3">
                                         {/* Search Input */}
                                         <div className="flex-1 relative">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                                 <input
                                                         type="text"
                                                         value={searchQuery}
                                                         onChange={(e) => onSearchChange(e.target.value)}
-                                                        placeholder="Search products..."
-                                                        className="w-full pl-10 pr-10 py-3 bg-white/70 border border-white/60 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                                                        placeholder="Search products by name..."
+                                                        className="w-full pl-11 pr-10 py-3.5 bg-white/90 border-2 border-gray-200 rounded-xl text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm"
                                                 />
                                                 {searchQuery && (
                                                         <button
                                                                 onClick={() => onSearchChange('')}
-                                                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/50 rounded-lg transition-colors"
+                                                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
                                                         >
-                                                                <X className="w-3.5 h-3.5 text-gray-400" />
+                                                                <X className="w-4 h-4 text-gray-500" />
                                                         </button>
                                                 )}
                                         </div>
 
-                                        {/* Advanced Filters Toggle */}
-                                        <button
-                                                onClick={onToggleAdvancedFilters}
-                                                className={`px-4 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all hover:scale-[1.02] ${showAdvancedFilters
-                                                        ? 'bg-primary-500 text-white shadow-lg'
-                                                        : 'bg-white/70 text-gray-700 border border-white/60'
-                                                        }`}
-                                        >
-                                                <ArrowUpDown className="w-4 h-4" />
-                                                <span className="hidden sm:inline">Sort & Filter</span>
-                                        </button>
+                                        {/* Product count badge */}
+                                        <div className="hidden sm:flex items-center gap-2 px-4 py-3.5 bg-primary-50 border-2 border-primary-200 rounded-xl">
+                                                <Package className="w-5 h-5 text-primary-600" />
+                                                <span className="text-sm font-bold text-primary-700">
+                                                        {filteredCount} / {totalProducts}
+                                                </span>
+                                        </div>
+                                </div>
 
-                                        {/* Reset Button */}
-                                        {hasActiveFilters && (
+                                {/* Category Pills */}
+                                {categories.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
                                                 <button
-                                                        onClick={onResetFilters}
-                                                        className="p-3 bg-white/70 border border-white/60 rounded-xl hover:bg-white/90 transition-all"
-                                                        title="Reset all filters"
+                                                        onClick={() => onCategoryChange('all')}
+                                                        className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${selectedCategory === 'all'
+                                                                        ? 'bg-primary-600 text-white shadow-md scale-105'
+                                                                        : 'bg-white/90 text-gray-700 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
+                                                                }`}
                                                 >
-                                                        <RotateCcw className="w-4 h-4 text-gray-600" />
+                                                        All Products
                                                 </button>
-                                        )}
-                                </div>
-                        </div>
-
-                        {/* Category Cards */}
-                        <div className="glass-strong p-3">
-                                <div className="flex items-center justify-between mb-2">
-                                        <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wide flex items-center gap-1.5">
-                                                <Grid3x3 className="w-3.5 h-3.5 text-primary-500" />
-                                                Categories
-                                        </h3>
-                                        <span className="text-xs text-gray-500 font-medium">
-                                                {filteredCount} of {totalProducts}
-                                        </span>
-                                </div>
-
-                                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
-                                        {/* All Products */}
-                                        <button
-                                                onClick={() => onCategoryChange('all')}
-                                                className={`group relative overflow-hidden rounded-lg p-2.5 border-2 transition-all duration-300 ${selectedCategory === 'all'
-                                                        ? 'bg-gradient-to-br from-primary-50 to-primary-100 border-primary-400 shadow-md scale-[1.02]'
-                                                        : 'bg-white/60 border-white/80 hover:border-primary-200 hover:bg-white/80'
-                                                        }`}
-                                        >
-                                                <div className="relative z-10">
-                                                        <div className="flex items-center justify-center w-8 h-8 mx-auto mb-1.5 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 text-white shadow-sm group-hover:scale-110 transition-transform">
-                                                                <Grid3x3 className="w-4 h-4" />
-                                                        </div>
-                                                        <h4 className="text-xs font-bold text-gray-800 mb-0.5">All</h4>
-                                                        <p className="text-[10px] text-gray-500 font-semibold">{totalProducts}</p>
-                                                </div>
-                                                {selectedCategory === 'all' && (
-                                                        <div className="absolute inset-0 bg-gradient-to-br from-primary-400/10 to-primary-600/10 animate-pulse" />
-                                                )}
-                                        </button>
-
-                                        {/* Category Cards */}
-                                        {categories.map((category) => {
-                                                const config = CATEGORY_CONFIG[category] || {
-                                                        icon: Grid3x3,
-                                                        label: category.charAt(0).toUpperCase() + category.slice(1),
-                                                        emoji: '📦',
-                                                        color: 'from-gray-400 to-gray-600',
-                                                        bgColor: 'bg-gray-50',
-                                                        textColor: 'text-gray-600',
-                                                        borderColor: 'border-gray-200',
-                                                };
-                                                const Icon = config.icon;
-                                                const count = getCategoryCount(category);
-
-                                                return (
+                                                {categories.map((category) => (
                                                         <button
                                                                 key={category}
                                                                 onClick={() => onCategoryChange(category)}
-                                                                className={`group relative overflow-hidden rounded-lg p-2.5 border-2 transition-all duration-300 ${selectedCategory === category
-                                                                        ? `${config.bgColor} ${config.borderColor} shadow-md scale-[1.02]`
-                                                                        : 'bg-white/60 border-white/80 hover:border-gray-300 hover:bg-white/80'
+                                                                className={`px-4 py-2 rounded-full text-sm font-semibold capitalize transition-all ${selectedCategory === category
+                                                                                ? 'bg-primary-600 text-white shadow-md scale-105'
+                                                                                : 'bg-white/90 text-gray-700 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                                                                         }`}
                                                         >
-                                                                <div className="relative z-10">
-                                                                        <div className={`flex items-center justify-center w-8 h-8 mx-auto mb-1.5 rounded-lg bg-gradient-to-br ${config.color} text-white shadow-sm group-hover:scale-110 transition-transform`}>
-                                                                                <Icon className="w-4 h-4" />
-                                                                        </div>
-                                                                        <h4 className="text-xs font-bold text-gray-800 mb-0.5 truncate">{config.label}</h4>
-                                                                        <p className="text-[10px] text-gray-500 font-semibold">{count}</p>
-                                                                </div>
-                                                                {selectedCategory === category && (
-                                                                        <div className={`absolute inset-0 bg-gradient-to-br ${config.color} opacity-5 animate-pulse`} />
-                                                                )}
+                                                                {category}
                                                         </button>
-                                                );
-                                        })}
-                                </div>
-                        </div>
-
-                        {/* Advanced Filters */}
-                        {showAdvancedFilters && (
-                                <div className="glass-strong p-4 animate-slide-down">
-                                        <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-4 flex items-center gap-2">
-                                                <ArrowUpDown className="w-3.5 h-3.5" />
-                                                Sort & Advanced Filters
-                                        </h3>
-                                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                {/* Sort By */}
-                                                <div>
-                                                        <label className="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">Sort By</label>
-                                                        <select
-                                                                value={sortBy}
-                                                                onChange={(e) => onSortChange(e.target.value)}
-                                                                className="w-full px-3 py-2.5 bg-white/80 border-2 border-white/60 rounded-xl text-sm text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent cursor-pointer transition-all hover:bg-white"
-                                                        >
-                                                                <option value="name">📝 Name (A-Z)</option>
-                                                                <option value="price-low">💰 Price: Low → High</option>
-                                                                <option value="price-high">💎 Price: High → Low</option>
-                                                                <option value="stock">📦 Stock Availability</option>
-                                                        </select>
-                                                </div>
-
-                                                {/* Price Range */}
-                                                <div>
-                                                        <label className="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
-                                                                Price Range
-                                                        </label>
-                                                        <div className="bg-white/60 border-2 border-white/60 rounded-xl p-3">
-                                                                <div className="flex items-center justify-between mb-2">
-                                                                        <span className="text-xs font-bold text-primary-600">₹{priceRange[0]}</span>
-                                                                        <span className="text-xs text-gray-400">to</span>
-                                                                        <span className="text-xs font-bold text-primary-600">₹{priceRange[1]}</span>
-                                                                </div>
-                                                                <div className="space-y-2">
-                                                                        <input
-                                                                                type="range"
-                                                                                min={0}
-                                                                                max={maxPrice}
-                                                                                value={priceRange[0]}
-                                                                                onChange={(e) => onPriceRangeChange([+e.target.value, priceRange[1]])}
-                                                                                className="w-full h-2 bg-white/50 rounded-lg appearance-none cursor-pointer slider"
-                                                                        />
-                                                                        <input
-                                                                                type="range"
-                                                                                min={0}
-                                                                                max={maxPrice}
-                                                                                value={priceRange[1]}
-                                                                                onChange={(e) => onPriceRangeChange([priceRange[0], +e.target.value])}
-                                                                                className="w-full h-2 bg-white/50 rounded-lg appearance-none cursor-pointer slider"
-                                                                        />
-                                                                </div>
-                                                        </div>
-                                                </div>
-
-                                                {/* Stock Filter */}
-                                                <div>
-                                                        <label className="block text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Stock Status</label>
-                                                        <div className="flex gap-2">
-                                                                <button
-                                                                        onClick={() => onStockFilterChange('all')}
-                                                                        className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${stockFilter === 'all'
-                                                                                ? 'bg-primary-500 text-white shadow-md'
-                                                                                : 'bg-white/60 text-gray-600 hover:bg-white/80'
-                                                                                }`}
-                                                                >
-                                                                        All
-                                                                </button>
-                                                                <button
-                                                                        onClick={() => onStockFilterChange('in-stock')}
-                                                                        className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${stockFilter === 'in-stock'
-                                                                                ? 'bg-emerald-500 text-white shadow-md'
-                                                                                : 'bg-white/60 text-gray-600 hover:bg-white/80'
-                                                                                }`}
-                                                                >
-                                                                        In Stock
-                                                                </button>
-                                                                <button
-                                                                        onClick={() => onStockFilterChange('low-stock')}
-                                                                        className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${stockFilter === 'low-stock'
-                                                                                ? 'bg-amber-500 text-white shadow-md'
-                                                                                : 'bg-white/60 text-gray-600 hover:bg-white/80'
-                                                                                }`}
-                                                                >
-                                                                        Low Stock
-                                                                </button>
-                                                        </div>
-                                                </div>
+                                                ))}
                                         </div>
-                                </div>
-                        )}
+                                )}
+                        </div>
                 </div>
         );
 };
@@ -355,13 +139,9 @@ const MachinePage = () => {
         const [purchasingProduct, setPurchasingProduct] = useState(null);
         const [paymentMessage, setPaymentMessage] = useState('');
 
-        // Filter & Sort state
+        // Simple Filter state - ONLY search and category
         const [searchQuery, setSearchQuery] = useState('');
         const [selectedCategory, setSelectedCategory] = useState('all');
-        const [sortBy, setSortBy] = useState('name'); // name, price-low, price-high, stock
-        const [priceRange, setPriceRange] = useState([0, 1000]);
-        const [stockFilter, setStockFilter] = useState('all'); // all, in-stock, low-stock
-        const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
         /**
          * Handle product purchase
@@ -389,6 +169,14 @@ const MachinePage = () => {
                 setPurchasingProduct(product);
                 setPaymentMessage('');
 
+                console.log('🛒 [Buy Product] Starting purchase:', {
+                        productId: product.id,
+                        productName: product.name,
+                        machineId: machineId,
+                        price: product.price,
+                        stock: product.stock
+                });
+
                 try {
                         // ========================================
                         // Step 1: Create Razorpay Order (Backend)
@@ -403,20 +191,32 @@ const MachinePage = () => {
 
                         console.log('Order created:', orderResponse);
 
-                        // ========================================
-                        // Step 2: Open Razorpay Checkout (Frontend)
-                        // ========================================
-                        setPaymentStatus(PAYMENT_STATUS.AWAITING_PAYMENT);
+                        let paymentResponse;
 
-                        const paymentResponse = await openRazorpayCheckout({
-                                orderId: orderResponse.razorpayOrderId,
-                                amount: orderResponse.amount,
-                                currency: orderResponse.currency,
-                                keyId: orderResponse.keyId,
-                                productName: orderResponse.productName,
-                        });
+                        if (ENABLE_PAYMENT_SIMULATION) {
+                                console.log('⚙️ Payment simulation enabled - skipping Razorpay checkout');
+                                setPaymentStatus(PAYMENT_STATUS.AWAITING_PAYMENT);
+                                paymentResponse = {
+                                        razorpay_order_id: orderResponse.razorpayOrderId || `order_sim_${Date.now()}`,
+                                        razorpay_payment_id: `pay_sim_${Date.now()}`,
+                                        razorpay_signature: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                                };
+                        } else {
+                                // ========================================
+                                // Step 2: Open Razorpay Checkout (Frontend)
+                                // ========================================
+                                setPaymentStatus(PAYMENT_STATUS.AWAITING_PAYMENT);
 
-                        console.log('Payment completed:', paymentResponse);
+                                paymentResponse = await openRazorpayCheckout({
+                                        orderId: orderResponse.razorpayOrderId,
+                                        amount: orderResponse.amount,
+                                        currency: orderResponse.currency,
+                                        keyId: orderResponse.keyId,
+                                        productName: orderResponse.productName,
+                                });
+
+                                console.log('Payment completed:', paymentResponse);
+                        }
 
                         // ========================================
                         // Step 3: Verify Payment (Backend)
@@ -482,10 +282,13 @@ const MachinePage = () => {
         }, []);
 
         /**
-         * Filter and sort products based on user selections
+         * Simple filtering - ALL products visible by default
+         * Only filters: search query and category selection
          */
         const filteredAndSortedProducts = useMemo(() => {
-                if (!products || products.length === 0) return [];
+                if (!products || products.length === 0) {
+                        return [];
+                }
 
                 let filtered = [...products];
 
@@ -503,43 +306,11 @@ const MachinePage = () => {
                         );
                 }
 
-                // Price range filter
-                filtered = filtered.filter(p =>
-                        p.price >= priceRange[0] && p.price <= priceRange[1]
-                );
-
-                // Stock filter
-                if (stockFilter === 'in-stock') {
-                        filtered = filtered.filter(p => p.stock > 0);
-                } else if (stockFilter === 'low-stock') {
-                        filtered = filtered.filter(p => p.stock > 0 && p.stock <= 3);
-                }
-
-                // Sort
-                filtered.sort((a, b) => {
-                        switch (sortBy) {
-                                case 'price-low':
-                                        return a.price - b.price;
-                                case 'price-high':
-                                        return b.price - a.price;
-                                case 'stock':
-                                        return b.stock - a.stock;
-                                case 'name':
-                                default:
-                                        return a.name.localeCompare(b.name);
-                        }
-                });
+                // Simple alphabetical sort
+                filtered.sort((a, b) => a.name.localeCompare(b.name));
 
                 return filtered;
-        }, [products, selectedCategory, searchQuery, sortBy, priceRange, stockFilter]);
-
-        /**
-         * Get max price from products for price range slider
-         */
-        const maxPrice = useMemo(() => {
-                if (!products || products.length === 0) return 1000;
-                return Math.max(...products.map(p => p.price), 100);
-        }, [products]);
+        }, [products, selectedCategory, searchQuery]);
 
         /**
          * Extract unique categories from products
@@ -547,27 +318,8 @@ const MachinePage = () => {
         const categories = useMemo(() => {
                 if (!products || products.length === 0) return [];
                 const uniqueCategories = [...new Set(products.map(p => p.category).filter(Boolean))];
-                return uniqueCategories;
+                return uniqueCategories.sort();
         }, [products]);
-
-        /**
-         * Get count of products per category
-         */
-        const getCategoryCount = useCallback((category) => {
-                if (!products) return 0;
-                return products.filter(p => p.category === category).length;
-        }, [products]);
-
-        /**
-         * Reset all filters
-         */
-        const handleResetFilters = useCallback(() => {
-                setSearchQuery('');
-                setSelectedCategory('all');
-                setSortBy('name');
-                setPriceRange([0, maxPrice]);
-                setStockFilter('all');
-        }, [maxPrice]);
 
         // ========================================
         // RENDER: Loading State
@@ -633,17 +385,6 @@ const MachinePage = () => {
                                         selectedCategory={selectedCategory}
                                         onCategoryChange={setSelectedCategory}
                                         categories={categories}
-                                        getCategoryCount={getCategoryCount}
-                                        sortBy={sortBy}
-                                        onSortChange={setSortBy}
-                                        priceRange={priceRange}
-                                        onPriceRangeChange={setPriceRange}
-                                        maxPrice={maxPrice}
-                                        stockFilter={stockFilter}
-                                        onStockFilterChange={setStockFilter}
-                                        showAdvancedFilters={showAdvancedFilters}
-                                        onToggleAdvancedFilters={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                                        onResetFilters={handleResetFilters}
                                         totalProducts={products?.length || 0}
                                         filteredCount={filteredAndSortedProducts.length}
                                 />

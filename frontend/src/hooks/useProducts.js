@@ -106,6 +106,17 @@ const useProducts = (machineId) => {
                                 // Sort products by name (client-side)
                                 updatedProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
+                                console.log('📦 [useProducts] Loaded products:', {
+                                        machineId,
+                                        count: updatedProducts.length,
+                                        products: updatedProducts.map(p => ({
+                                                name: p.name,
+                                                category: p.category,
+                                                price: p.price,
+                                                stock: p.stock
+                                        }))
+                                });
+
                                 setPreviousStock(newStockValues);
                                 setProducts(updatedProducts);
                                 setLoading(false);
