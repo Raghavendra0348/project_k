@@ -30,7 +30,7 @@ import { createOrder, verifyPayment, dispenseProduct } from '../services/api';
 import { openRazorpayCheckout } from '../services/razorpay';
 
 // Constants
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../config/constants';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, ENABLE_PAYMENT_SIMULATION } from '../config/constants';
 
 // Icons for FilterBar
 import { Search, X, SlidersHorizontal, Package } from 'lucide-react';
@@ -88,8 +88,8 @@ const FilterBar = ({
                                                 <button
                                                         onClick={() => onCategoryChange('all')}
                                                         className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${selectedCategory === 'all'
-                                                                ? 'bg-primary-600 text-white shadow-md scale-105'
-                                                                : 'bg-white/90 text-gray-700 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
+                                                                        ? 'bg-primary-600 text-white shadow-md scale-105'
+                                                                        : 'bg-white/90 text-gray-700 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                                                                 }`}
                                                 >
                                                         All Products
@@ -99,8 +99,8 @@ const FilterBar = ({
                                                                 key={category}
                                                                 onClick={() => onCategoryChange(category)}
                                                                 className={`px-4 py-2 rounded-full text-sm font-semibold capitalize transition-all ${selectedCategory === category
-                                                                        ? 'bg-primary-600 text-white shadow-md scale-105'
-                                                                        : 'bg-white/90 text-gray-700 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
+                                                                                ? 'bg-primary-600 text-white shadow-md scale-105'
+                                                                                : 'bg-white/90 text-gray-700 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                                                                         }`}
                                                         >
                                                                 {category}
@@ -191,20 +191,32 @@ const MachinePage = () => {
 
                         console.log('Order created:', orderResponse);
 
-                        // ========================================
-                        // Step 2: Open Razorpay Checkout (Frontend)
-                        // ========================================
-                        setPaymentStatus(PAYMENT_STATUS.AWAITING_PAYMENT);
+                        let paymentResponse;
 
-                        const paymentResponse = await openRazorpayCheckout({
-                                orderId: orderResponse.razorpayOrderId,
-                                amount: orderResponse.amount,
-                                currency: orderResponse.currency,
-                                keyId: orderResponse.keyId,
-                                productName: orderResponse.productName,
-                        });
+                        if (ENABLE_PAYMENT_SIMULATION) {
+                                console.log('⚙️ Payment simulation enabled - skipping Razorpay checkout');
+                                setPaymentStatus(PAYMENT_STATUS.AWAITING_PAYMENT);
+                                paymentResponse = {
+                                        razorpay_order_id: orderResponse.razorpayOrderId || `order_sim_${Date.now()}`,
+                                        razorpay_payment_id: `pay_sim_${Date.now()}`,
+                                        razorpay_signature: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                                };
+                        } else {
+                                // ========================================
+                                // Step 2: Open Razorpay Checkout (Frontend)
+                                // ========================================
+                                setPaymentStatus(PAYMENT_STATUS.AWAITING_PAYMENT);
 
-                        console.log('Payment completed:', paymentResponse);
+                                paymentResponse = await openRazorpayCheckout({
+                                        orderId: orderResponse.razorpayOrderId,
+                                        amount: orderResponse.amount,
+                                        currency: orderResponse.currency,
+                                        keyId: orderResponse.keyId,
+                                        productName: orderResponse.productName,
+                                });
+
+                                console.log('Payment completed:', paymentResponse);
+                        }
 
                         // ========================================
                         // Step 3: Verify Payment (Backend)

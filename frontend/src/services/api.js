@@ -45,7 +45,7 @@ import { API_BASE_URL } from '../config/constants';
 export const createOrder = async (productId, machineId) => {
         try {
                 console.log('📡 [API] Creating order:', { productId, machineId, url: `${API_BASE_URL}/createOrder` });
-
+                
                 const response = await fetch(`${API_BASE_URL}/createOrder`, {
                         method: 'POST',
                         headers: {

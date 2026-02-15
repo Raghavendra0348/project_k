@@ -43,6 +43,7 @@ interface CreateOrderResponse {
   currency?: string;
   keyId?: string; // Razorpay public key ID
   productName?: string;
+  mockPayment?: boolean;
   error?: string;
 }
 
@@ -55,6 +56,9 @@ export const createOrderHandler = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const isPaymentSimulationEnabled =
+      process.env.ENABLE_PAYMENT_SIMULATION === 'true';
+
     // ----------------------------------------
     // Step 1: Validate Input
     // ----------------------------------------
@@ -133,18 +137,26 @@ export const createOrderHandler = async (
     const timestamp = Date.now().toString().slice(-8); // Last 8 digits
     const receiptId = `vm_${machineId}_${timestamp}`.slice(0, 40);
 
-    const razorpayOrder = await createRazorpayOrder({
-      amount: amountInPaise,
-      currency: 'INR',
-      receipt: receiptId,
-      notes: {
-        productId,
-        machineId,
-        productName: product.name,
-      },
-    });
+    let razorpayOrderId: string;
 
-    const razorpayOrderId = razorpayOrder.id;
+    if (isPaymentSimulationEnabled) {
+      functions.logger.warn(
+        'Payment simulation enabled - skipping Razorpay order creation',
+      );
+      razorpayOrderId = `order_sim_${Date.now()}`;
+    } else {
+      const razorpayOrder = await createRazorpayOrder({
+        amount: amountInPaise,
+        currency: 'INR',
+        receipt: receiptId,
+        notes: {
+          productId,
+          machineId,
+          productName: product.name,
+        },
+      });
+      razorpayOrderId = razorpayOrder.id;
+    }
 
     // ----------------------------------------
     // Step 6: Create Pending Order in Firestore
@@ -169,6 +181,7 @@ export const createOrderHandler = async (
       orderId: orderRef.id,
       razorpayOrderId,
       amount: amountInPaise,
+      paymentSimulation: isPaymentSimulationEnabled,
     });
 
     // ----------------------------------------
@@ -182,6 +195,7 @@ export const createOrderHandler = async (
       currency: 'INR',
       keyId: getRazorpayKeyId(),
       productName: product.name,
+      mockPayment: isPaymentSimulationEnabled,
     };
 
     res.status(200).json(response);
