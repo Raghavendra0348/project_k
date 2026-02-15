@@ -32,6 +32,7 @@
         "author": "Your Name",
         "license": "MIT",
         "dependencies": {
-                "animejs": "^4.3.6"
+                "animejs": "^4.3.6",
+                "qr-scanner": "^1.4.2"
         }
 }

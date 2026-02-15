@@ -49,8 +49,10 @@ const db = getFirestore(app);
  */
 if (process.env.REACT_APP_ENV === 'development' && process.env.REACT_APP_USE_EMULATOR === 'true') {
         try {
-                connectFirestoreEmulator(db, 'localhost', 8080);
-                console.log('🔧 Connected to Firestore Emulator');
+                // Use network IP for mobile access, localhost for desktop
+                const emulatorHost = process.env.REACT_APP_EMULATOR_HOST || '10.33.184.164';
+                connectFirestoreEmulator(db, emulatorHost, 8080);
+                console.log(`🔧 Connected to Firestore Emulator at ${emulatorHost}:8080`);
         } catch (error) {
                 // Emulator already connected (happens in hot reload)
                 console.log('Firestore emulator connection skipped (already connected)');

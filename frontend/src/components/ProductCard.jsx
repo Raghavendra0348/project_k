@@ -67,7 +67,7 @@ const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
                 <div className={`product-card relative ${showAnimation ? 'flash-update' : ''} ${isOutOfStock ? 'opacity-70' : ''}`}>
                         {/* Out of Stock Badge */}
                         {isOutOfStock && (
-                                <div className="badge-out-of-stock flex items-center gap-1 z-10">
+                                <div className="badge-out-of-stock flex items-center gap-1 z-10 text-xs sm:text-xs">
                                         <AlertTriangle className="w-3 h-3" />
                                         <span>Sold Out</span>
                                 </div>
@@ -79,13 +79,13 @@ const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
                                         <img
                                                 src={imageUrl}
                                                 alt={name}
-                                                className={`w-full h-44 object-cover transition-all duration-500 ${!isOutOfStock ? 'hover:scale-110' : 'grayscale opacity-80'}`}
+                                                className={`w-full h-36 sm:h-40 md:h-44 object-cover transition-all duration-500 ${!isOutOfStock ? 'hover:scale-110' : 'grayscale opacity-80'}`}
                                                 loading="lazy"
                                         />
                                 ) : (
-                                        <div className="w-full h-44 flex items-center justify-center">
-                                                <div className="glass-icon w-16 h-16">
-                                                        <Package className="w-8 h-8 text-gray-400" />
+                                        <div className="w-full h-36 sm:h-40 md:h-44 flex items-center justify-center">
+                                                <div className="glass-icon w-12 h-12 sm:w-16 sm:h-16">
+                                                        <Package className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                                                 </div>
                                         </div>
                                 )}
@@ -94,13 +94,13 @@ const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
                         </div>
 
                         {/* Product Details */}
-                        <div className="p-5">
-                                <h3 className="font-semibold text-gray-800 text-base mb-1.5 truncate" title={name}>
+                        <div className="p-3 sm:p-4 md:p-5">
+                                <h3 className="font-semibold text-gray-800 text-sm sm:text-base mb-1 sm:mb-1.5 truncate" title={name}>
                                         {name}
                                 </h3>
 
                                 {/* Price with gradient */}
-                                <p className="text-2xl font-bold mb-3">
+                                <p className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">
                                         <span className="bg-clip-text text-transparent"
                                                 style={{ backgroundImage: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>
                                                 {formatPrice(price)}
@@ -108,39 +108,40 @@ const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
                                 </p>
 
                                 {/* Stock Indicator */}
-                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full mb-4 ${showAnimation ? 'stock-changed' : ''}`}
+                                <div className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full mb-3 sm:mb-4 ${showAnimation ? 'stock-changed' : ''}`}
                                         style={stockStatus.bgStyle}>
                                         <span className={`w-1.5 h-1.5 rounded-full ${stockStatus.dotColor}`} />
-                                        <span className={stockStatus.className}>{stockStatus.label}</span>
+                                        <span className={`${stockStatus.className} text-xs sm:text-sm`}>{stockStatus.label}</span>
                                 </div>
 
                                 {/* Buy Button */}
                                 <button
                                         onClick={handleBuyClick}
                                         disabled={!canBuy}
-                                        className={`btn-buy ${purchasing ? 'animate-pulse' : ''}`}
+                                        className={`btn-buy text-sm sm:text-base ${purchasing ? 'animate-pulse' : ''}`}
                                 >
                                         {purchasing ? (
                                                 <>
-                                                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                                                        <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24">
                                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                                         </svg>
-                                                        <span>Processing...</span>
+                                                        <span className="hidden xs:inline">Processing...</span>
+                                                        <span className="xs:hidden">Wait...</span>
                                                 </>
                                         ) : isOutOfStock ? (
                                                 <>
-                                                        <AlertTriangle className="w-5 h-5" />
+                                                        <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
                                                         <span>Out of Stock</span>
                                                 </>
                                         ) : disabled ? (
                                                 <>
-                                                        <AlertTriangle className="w-5 h-5" />
+                                                        <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
                                                         <span>Unavailable</span>
                                                 </>
                                         ) : (
                                                 <>
-                                                        <ShoppingCart className="w-5 h-5" />
+                                                        <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                                                         <span>Buy Now</span>
                                                 </>
                                         )}

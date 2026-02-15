@@ -112,7 +112,7 @@ frontend/
 ```jsx
 Route: /
 Features:
-- PhonePe-style QR scanner card with green corner brackets
+- modern-style QR scanner card with green corner brackets
 - Animated typing tagline (4 rotating messages)
 - Torch toggle for camera flash
 - Green gradient design

@@ -345,40 +345,166 @@ body {
                 -40px 40px 0 -37px var(--qr-border-color);
 }
 
-/* Hero card QR corners - larger and animated */
+/* Hero card QR corners - ALL 4 corners properly aligned and responsive */
 .qr-corners-hero {
         position: relative;
 }
 
+/* Base corner styling - mobile first (320px+) */
 .qr-corners-hero::before,
 .qr-corners-hero::after {
         content: '';
         position: absolute;
-        width: 48px;
-        height: 48px;
-        border: 4px solid #10b981;
+        width: 32px;
+        height: 32px;
+        border: 3px solid #10b981;
         animation: cornerGlow 2.5s ease-in-out infinite;
         z-index: 10;
+        pointer-events: none;
 }
 
 /* Top-left corner */
 .qr-corners-hero::before {
-        top: -4px;
-        left: -4px;
-
+        top: -2px;
+        left: -2px;
         border-right: none;
         border-bottom: none;
-        border-top-left-radius: 12px;
+        border-top-left-radius: 8px;
 }
 
 /* Bottom-right corner */
 .qr-corners-hero::after {
-        bottom: -4px;
-        right: -4px;
+        bottom: -2px;
+        right: -2px;
         border-left: none;
         border-top: none;
-        border-bottom-right-radius: 12px;
+        border-bottom-right-radius: 8px;
         animation-delay: 0.4s;
+}
+
+/* Top-right and Bottom-left corners using background gradients */
+.qr-corners-hero {
+        --corner-size: 32px;
+        --corner-border: 3px;
+        --corner-color: #10b981;
+        --corner-radius: 8px;
+}
+
+.qr-corners-hero::before {
+        /* Add top-right corner */
+        background:
+                /* Vertical line */
+                linear-gradient(var(--corner-color), var(--corner-color)) calc(100% + 4px) -2px / var(--corner-border) var(--corner-size) no-repeat,
+                /* Horizontal line */
+                linear-gradient(90deg, var(--corner-color), var(--corner-color)) calc(100% + 4px - var(--corner-size) + var(--corner-border)) -2px / var(--corner-size) var(--corner-border) no-repeat;
+}
+
+.qr-corners-hero::after {
+        /* Add bottom-left corner */
+        background:
+                /* Vertical line */
+                linear-gradient(var(--corner-color), var(--corner-color)) calc(-100% - 4px - var(--corner-border) + 1px) calc(-1 * (var(--corner-size) - var(--corner-border) - 2px)) / var(--corner-border) var(--corner-size) no-repeat,
+                /* Horizontal line */
+                linear-gradient(90deg, var(--corner-color), var(--corner-color)) calc(-100% - 4px) -2px / var(--corner-size) var(--corner-border) no-repeat;
+}
+
+/* Extra small screens (375px+) */
+@media (min-width: 375px) {
+
+        .qr-corners-hero::before,
+        .qr-corners-hero::after {
+                width: 36px;
+                height: 36px;
+                border-width: 3.5px;
+        }
+
+        .qr-corners-hero {
+                --corner-size: 36px;
+                --corner-border: 3.5px;
+        }
+}
+
+/* Small phones landscape / larger phones (400px+) */
+@media (min-width: 400px) {
+
+        .qr-corners-hero::before,
+        .qr-corners-hero::after {
+                width: 42px;
+                height: 42px;
+                border-width: 4px;
+        }
+
+        .qr-corners-hero {
+                --corner-size: 42px;
+                --corner-border: 4px;
+                --corner-radius: 10px;
+        }
+
+        .qr-corners-hero::before {
+                border-top-left-radius: 10px;
+        }
+
+        .qr-corners-hero::after {
+                border-bottom-right-radius: 10px;
+        }
+}
+
+/* Tablets and small laptops (640px+) */
+@media (min-width: 640px) {
+
+        .qr-corners-hero::before,
+        .qr-corners-hero::after {
+                width: 48px;
+                height: 48px;
+                border-width: 4.5px;
+        }
+
+        .qr-corners-hero {
+                --corner-size: 48px;
+                --corner-border: 4.5px;
+                --corner-radius: 12px;
+        }
+
+        .qr-corners-hero::before {
+                top: -3px;
+                left: -3px;
+                border-top-left-radius: 12px;
+        }
+
+        .qr-corners-hero::after {
+                bottom: -3px;
+                right: -3px;
+                border-bottom-right-radius: 12px;
+        }
+}
+
+/* Medium screens and laptops (768px+) */
+@media (min-width: 768px) {
+
+        .qr-corners-hero::before,
+        .qr-corners-hero::after {
+                width: 56px;
+                height: 56px;
+                border-width: 5px;
+        }
+
+        .qr-corners-hero {
+                --corner-size: 56px;
+                --corner-border: 5px;
+                --corner-radius: 14px;
+        }
+
+        .qr-corners-hero::before {
+                top: -4px;
+                left: -4px;
+                border-top-left-radius: 14px;
+        }
+
+        .qr-corners-hero::after {
+                bottom: -4px;
+                right: -4px;
+                border-bottom-right-radius: 14px;
+        }
 }
 
 /* Animated scanning line effect */
@@ -432,6 +558,21 @@ body {
                 filter: drop-shadow(0 0 12px rgba(16, 185, 129, 1));
                 border-color: #34d399;
                 /* green-400 */
+        }
+}
+
+/* Corner pulse animation for green brackets */
+@keyframes corner-pulse {
+
+        0%,
+        100% {
+                opacity: 1;
+                filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.5));
+        }
+
+        50% {
+                opacity: 0.8;
+                filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.9));
         }
 }
 
@@ -526,5 +667,98 @@ input[type="range"].slider::-moz-range-track {
                 padding-left: max(1rem, env(safe-area-inset-left));
                 padding-right: max(1rem, env(safe-area-inset-right));
                 padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+}
+
+/* Mobile-first responsive utilities */
+@media (max-width: 640px) {
+
+        /* Adjust font sizes for mobile */
+        h1 {
+                font-size: clamp(2rem, 8vw, 3rem);
+        }
+
+        h2 {
+                font-size: clamp(1.5rem, 6vw, 2rem);
+        }
+
+        /* Reduce padding on glass elements for mobile */
+        .glass,
+        .glass-strong,
+        .glass-dark {
+                padding: 1rem;
+        }
+
+        /* Make product cards single column friendly */
+        .product-card {
+                min-width: 0;
+        }
+
+        /* Adjust button sizes for touch */
+        .btn-buy,
+        .btn-cta {
+                min-height: 48px;
+                font-size: 0.9375rem;
+        }
+
+        /* Improve touch targets */
+        button {
+                min-height: 44px;
+        }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+        .page-container {
+                font-size: 16px;
+        }
+}
+
+/* Desktop and laptop optimizations */
+@media (min-width: 1025px) {
+
+        /* Optimize hover effects for mouse input */
+        .product-card:hover {
+                transform: translateY(-8px) scale(1.01);
+        }
+
+        .btn-buy:hover:not(:disabled) {
+                transform: translateY(-2px) scale(1.03);
+        }
+}
+
+/* Prevent horizontal scroll on mobile */
+body {
+        overflow-x: hidden;
+        width: 100%;
+}
+
+/* Responsive container max-widths */
+.responsive-container {
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1rem;
+        padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+        .responsive-container {
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+        }
+}
+
+@media (min-width: 1024px) {
+        .responsive-container {
+                max-width: 1280px;
+                padding-left: 2rem;
+                padding-right: 2rem;
+        }
+}
+
+@media (min-width: 1280px) {
+        .responsive-container {
+                max-width: 1536px;
         }
 }

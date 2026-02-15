@@ -49,24 +49,24 @@ const FilterBar = ({
         filteredCount,
 }) => {
         return (
-                <div className="glass-strong p-4 animate-fade-in">
-                        <div className="flex flex-col gap-4">
+                <div className="glass-strong p-3 sm:p-4 animate-fade-in">
+                        <div className="flex flex-col gap-3 sm:gap-4">
                                 {/* Top row: Search and stats */}
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 sm:gap-3">
                                         {/* Search Input */}
                                         <div className="flex-1 relative">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
                                                 <input
                                                         type="text"
                                                         value={searchQuery}
                                                         onChange={(e) => onSearchChange(e.target.value)}
-                                                        placeholder="Search products by name..."
-                                                        className="w-full pl-11 pr-10 py-3.5 bg-white/90 border-2 border-gray-200 rounded-xl text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm"
+                                                        placeholder="Search products..."
+                                                        className="w-full pl-9 sm:pl-11 pr-9 sm:pr-10 py-2.5 sm:py-3.5 bg-white/90 border-2 border-gray-200 rounded-xl text-sm sm:text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm"
                                                 />
                                                 {searchQuery && (
                                                         <button
                                                                 onClick={() => onSearchChange('')}
-                                                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                                                                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
                                                         >
                                                                 <X className="w-4 h-4 text-gray-500" />
                                                         </button>
@@ -74,22 +74,22 @@ const FilterBar = ({
                                         </div>
 
                                         {/* Product count badge */}
-                                        <div className="hidden sm:flex items-center gap-2 px-4 py-3.5 bg-primary-50 border-2 border-primary-200 rounded-xl">
-                                                <Package className="w-5 h-5 text-primary-600" />
-                                                <span className="text-sm font-bold text-primary-700">
-                                                        {filteredCount} / {totalProducts}
+                                        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2.5 sm:py-3.5 bg-primary-50 border-2 border-primary-200 rounded-xl flex-shrink-0">
+                                                <Package className="w-4 sm:w-5 h-4 sm:h-5 text-primary-600" />
+                                                <span className="text-xs sm:text-sm font-bold text-primary-700 whitespace-nowrap">
+                                                        {filteredCount}/{totalProducts}
                                                 </span>
                                         </div>
                                 </div>
 
                                 {/* Category Pills */}
                                 {categories.length > 0 && (
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                                 <button
                                                         onClick={() => onCategoryChange('all')}
-                                                        className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${selectedCategory === 'all'
-                                                                        ? 'bg-primary-600 text-white shadow-md scale-105'
-                                                                        : 'bg-white/90 text-gray-700 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
+                                                        className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${selectedCategory === 'all'
+                                                                ? 'bg-primary-600 text-white shadow-md scale-105'
+                                                                : 'bg-white/90 text-gray-700 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                                                                 }`}
                                                 >
                                                         All Products
@@ -99,8 +99,8 @@ const FilterBar = ({
                                                                 key={category}
                                                                 onClick={() => onCategoryChange(category)}
                                                                 className={`px-4 py-2 rounded-full text-sm font-semibold capitalize transition-all ${selectedCategory === category
-                                                                                ? 'bg-primary-600 text-white shadow-md scale-105'
-                                                                                : 'bg-white/90 text-gray-700 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
+                                                                        ? 'bg-primary-600 text-white shadow-md scale-105'
+                                                                        : 'bg-white/90 text-gray-700 border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                                                                         }`}
                                                         >
                                                                 {category}
@@ -365,9 +365,9 @@ const MachinePage = () => {
         return (
                 <div className="mesh-gradient min-h-screen safe-area-padding relative">
                         {/* Subtle background blobs */}
-                        <div className="fixed top-40 -left-40 w-96 h-96 rounded-full opacity-15 pointer-events-none"
+                        <div className="fixed top-40 -left-40 w-64 sm:w-96 h-64 sm:h-96 rounded-full opacity-15 pointer-events-none"
                                 style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.25), transparent 70%)' }} />
-                        <div className="fixed bottom-20 -right-40 w-80 h-80 rounded-full opacity-10 pointer-events-none"
+                        <div className="fixed bottom-20 -right-40 w-56 sm:w-80 h-56 sm:h-80 rounded-full opacity-10 pointer-events-none"
                                 style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.25), transparent 70%)' }} />
 
                         {/* Header with machine info */}
@@ -378,7 +378,7 @@ const MachinePage = () => {
                         />
 
                         {/* Filter Bar */}
-                        <div className="relative max-w-7xl mx-auto px-5 pt-4 pb-2">
+                        <div className="relative max-w-7xl mx-auto px-3 sm:px-5 pt-3 sm:pt-4 pb-1.5 sm:pb-2">
                                 <FilterBar
                                         searchQuery={searchQuery}
                                         onSearchChange={setSearchQuery}
