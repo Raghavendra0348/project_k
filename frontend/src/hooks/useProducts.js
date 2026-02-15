@@ -133,6 +133,7 @@ const useProducts = (machineId) => {
                         console.log('Unsubscribing from products listener');
                         unsubscribe();
                 };
+                // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [machineId]); // Re-subscribe when machineId changes
 
         return {

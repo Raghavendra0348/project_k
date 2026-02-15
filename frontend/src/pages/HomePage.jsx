@@ -22,6 +22,8 @@ const HomePage = () => {
         const [torchOn, setTorchOn] = useState(false);
         const scanProcessedRef = useRef(false);
         const videoTrackRef = useRef(null);
+        const stepsRef = useRef(null);
+        const [stepsVisible, setStepsVisible] = useState(false);
 
         // Animated text typing effect
         const taglines = [
@@ -51,6 +53,30 @@ const HomePage = () => {
 
                 return () => clearTimeout(timeout);
         }, [displayed, isDeleting, taglineIndex, taglines]);
+
+        // Intersection Observer for steps cards animation
+        useEffect(() => {
+                if (!stepsRef.current) return;
+
+                const observer = new IntersectionObserver(
+                        (entries) => {
+                                entries.forEach((entry) => {
+                                        if (entry.isIntersecting && !stepsVisible) {
+                                                setStepsVisible(true);
+                                        }
+                                });
+                        },
+                        { threshold: 0.1 }
+                );
+
+                observer.observe(stepsRef.current);
+
+                return () => {
+                        if (stepsRef.current) {
+                                observer.unobserve(stepsRef.current);
+                        }
+                };
+        }, [stepsVisible]);
 
         // Torch toggle via MediaStream track
         const toggleTorch = useCallback(async () => {
@@ -112,12 +138,27 @@ const HomePage = () => {
 
         const handleError = (error) => {
                 console.error('QR Scanner Error:', error);
+                console.error('Error name:', error?.name);
+                console.error('Error message:', error?.message);
+
                 if (error?.name === 'NotAllowedError') {
-                        toast.error('Camera permission denied. Please enable camera access.');
+                        toast.error('Camera permission denied. Please enable camera access in browser settings.');
+                        console.log('Camera permission was denied by user or browser');
                 } else if (error?.name === 'NotFoundError') {
                         toast.error('No camera found on this device.');
+                        console.log('No camera device found');
+                } else if (error?.name === 'NotReadableError') {
+                        toast.error('Camera is already in use by another app.');
+                        console.log('Camera is being used by another application');
+                } else if (error?.name === 'OverconstrainedError') {
+                        toast.error('Camera constraints not supported.');
+                        console.log('Camera constraints are not supported');
+                } else if (error?.name === 'SecurityError') {
+                        toast.error('Camera access blocked. Please use HTTPS or localhost.');
+                        console.log('Security error - HTTPS required for camera on this device');
                 } else {
-                        toast.error('Error accessing camera. Please try again.');
+                        toast.error(`Camera error: ${error?.message || 'Please try again'}`);
+                        console.log('Unknown camera error occurred');
                 }
         };
 
@@ -185,7 +226,10 @@ const HomePage = () => {
                                                         </div>
                                                 </div>
                                                 <div className="p-4 text-center text-sm text-gray-500 font-medium">
-                                                        Align the QR code inside the green frame
+                                                        <p>Align the QR code inside the green frame</p>
+                                                        <p className="text-xs mt-2 text-gray-400">
+                                                                Check browser console (F12) for camera debug info
+                                                        </p>
                                                 </div>
                                         </div>
                                 </div>
@@ -276,22 +320,10 @@ const HomePage = () => {
                         </div>
 
                         {/* ====== Stats Bar ====== */}
-                        <div className="relative max-w-md mx-auto px-5 mb-14">
-                                <div className="glass flex items-center justify-around py-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-                                        {stats.map((s, i) => (
-                                                <div key={i} className="text-center">
-                                                        <div className="flex items-center justify-center gap-1.5 mb-1">
-                                                                <s.icon className="w-4 h-4 text-primary-400" />
-                                                                <span className="text-xl font-extrabold text-gray-800">{s.value}</span>
-                                                        </div>
-                                                        <span className="text-xs text-gray-400 font-medium">{s.label}</span>
-                                                </div>
-                                        ))}
-                                </div>
-                        </div>
+
 
                         {/* ====== How It Works ====== */}
-                        <div className="relative max-w-5xl mx-auto px-5 py-10">
+                        <div className="relative max-w-5xl mx-auto px-5 py-10" ref={stepsRef}>
                                 <h2 className="text-center text-sm font-semibold tracking-widest uppercase text-primary-400 mb-3">
                                         How It Works
                                 </h2>
@@ -301,13 +333,17 @@ const HomePage = () => {
                                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
                                         {steps.map((step, i) => (
                                                 <div key={i}
-                                                        className="glass group hover:bg-white/70 p-7 text-center transition-all duration-500 hover:-translate-y-2 hover:shadow-glass-lg animate-fade-in relative"
-                                                        style={{ animationDelay: `${i * 0.1}s` }}>
-                                                        <div className={`glass-icon glass-icon-${step.color} w-14 h-14 mx-auto mb-5 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                                                        className={`step-card glass group hover:bg-white/70 p-7 text-center relative transition-all duration-500 ${stepsVisible ? 'step-card-visible' : 'opacity-0'
+                                                                }`}
+                                                        style={{
+                                                                animationDelay: `${i * 150}ms`,
+                                                                transform: stepsVisible ? 'none' : 'translateY(60px) scale(0.9) rotate(2deg)'
+                                                        }}>
+                                                        <div className={`step-icon glass-icon glass-icon-${step.color} w-14 h-14 mx-auto mb-5 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6`}>
                                                                 <step.icon className={`w-7 h-7 ${step.color === 'blue' ? 'text-primary-500' :
-                                                                                step.color === 'green' ? 'text-emerald-500' :
-                                                                                        step.color === 'purple' ? 'text-accent-500' :
-                                                                                                'text-amber-500'
+                                                                        step.color === 'green' ? 'text-emerald-500' :
+                                                                                step.color === 'purple' ? 'text-accent-500' :
+                                                                                        'text-amber-500'
                                                                         }`} />
                                                         </div>
                                                         <div className="text-[10px] font-bold text-primary-300 mb-2 tracking-[0.2em]">STEP {i + 1}</div>
@@ -368,14 +404,7 @@ const HomePage = () => {
                         )}
 
                         {/* Footer */}
-                        <footer className="relative text-center py-10 mt-4">
-                                <div className="glass-dark inline-block px-8 py-3 mx-auto">
-                                        <p className="text-sm text-gray-400 font-medium">
-                                                Powered by Firebase & Razorpay
-                                        </p>
-                                        <p className="text-xs text-gray-400/60 mt-1">© 2025 Smart Vending Machine</p>
-                                </div>
-                        </footer>
+
                 </div>
         );
 };

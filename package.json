@@ -30,5 +30,8 @@
                 "real-time"
         ],
         "author": "Your Name",
-        "license": "MIT"
+        "license": "MIT",
+        "dependencies": {
+                "animejs": "^4.3.6"
+        }
 }

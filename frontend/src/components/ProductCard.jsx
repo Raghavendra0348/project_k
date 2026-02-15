@@ -44,7 +44,7 @@ const getStockStatus = (stock) => {
 };
 
 const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
-        const { id, name, price, stock, imageUrl, _stockChanged } = product;
+        const { name, price, stock, imageUrl, _stockChanged } = product;
         const [showAnimation, setShowAnimation] = useState(false);
 
         const stockStatus = getStockStatus(stock);

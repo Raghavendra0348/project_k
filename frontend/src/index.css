@@ -346,6 +346,10 @@ body {
 }
 
 /* Hero card QR corners - larger and animated */
+.qr-corners-hero {
+        position: relative;
+}
+
 .qr-corners-hero::before,
 .qr-corners-hero::after {
         content: '';
@@ -357,14 +361,17 @@ body {
         z-index: 10;
 }
 
+/* Top-left corner */
 .qr-corners-hero::before {
         top: -4px;
         left: -4px;
+
         border-right: none;
         border-bottom: none;
         border-top-left-radius: 12px;
 }
 
+/* Bottom-right corner */
 .qr-corners-hero::after {
         bottom: -4px;
         right: -4px;
@@ -372,10 +379,6 @@ body {
         border-top: none;
         border-bottom-right-radius: 12px;
         animation-delay: 0.4s;
-}
-
-.qr-corners-hero {
-        position: relative;
 }
 
 /* Animated scanning line effect */
@@ -430,6 +433,31 @@ body {
                 border-color: #34d399;
                 /* green-400 */
         }
+}
+
+/* ============================================
+   STEP CARDS ANIMATION
+   ============================================ */
+
+@keyframes stepCardSlideIn {
+        0% {
+                opacity: 0;
+                transform: translateY(60px) scale(0.9) rotate(2deg);
+        }
+
+        100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+        }
+}
+
+.step-card-visible {
+        animation: stepCardSlideIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.step-card:hover {
+        transform: translateY(-8px) !important;
+        box-shadow: 0 20px 60px rgba(99, 102, 241, 0.18) !important;
 }
 
 /* ============================================

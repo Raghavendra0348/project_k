@@ -14,11 +14,11 @@ const QRGeneratorPage = () => {
         const [machineId, setMachineId] = useState('machine-001');
         const [qrDataUrl, setQrDataUrl] = useState('');
         const [copied, setCopied] = useState(false);
-        const canvasRef = useRef(null);
 
         // Generate QR code whenever machineId changes
         useEffect(() => {
                 generateQRCode();
+                // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [machineId]);
 
         const generateQRCode = async () => {
@@ -115,8 +115,8 @@ const QRGeneratorPage = () => {
                                                                                         key={machine.id}
                                                                                         onClick={() => setMachineId(machine.id)}
                                                                                         className={`px-3 py-1 text-sm rounded-lg transition-colors ${machineId === machine.id
-                                                                                                        ? 'bg-blue-600 text-white'
-                                                                                                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                                                                                                ? 'bg-blue-600 text-white'
+                                                                                                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                                                                                                 }`}
                                                                                 >
                                                                                         {machine.name}
