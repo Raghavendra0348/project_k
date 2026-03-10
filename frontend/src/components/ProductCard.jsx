@@ -45,7 +45,7 @@ const getStockStatus = (stock) => {
 };
 
 const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
-        const { name, price, stock, imageUrl, _stockChanged, trending, salesData, seasonalTag } = product;
+        const { name, price, stock, imageUrl, _stockChanged, trending, salesData, season } = product;
         const [showAnimation, setShowAnimation] = useState(false);
 
         const stockStatus = getStockStatus(stock);
@@ -54,7 +54,7 @@ const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
         const isTrending = trending?.isTrending;
 
         // Season icon mapping
-        const getSeasonIcon = (season) => {
+        const getSeasonIcon = (seasonTag) => {
                 const icons = {
                         summer: Sun,
                         monsoon: Cloud,
@@ -62,10 +62,10 @@ const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
                         autumn: Leaf,
                         'all-season': CheckCircle,
                 };
-                return icons[season] || CheckCircle;
+                return icons[seasonTag] || CheckCircle;
         };
 
-        const SeasonIcon = getSeasonIcon(seasonalTag);
+        const SeasonIcon = getSeasonIcon(season || 'all-season');
 
         useEffect(() => {
                 if (_stockChanged) {
@@ -90,14 +90,14 @@ const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
                         )}
 
                         {/* Season Badge */}
-                        {seasonalTag && !isOutOfStock && (
+                        {season && season !== 'all-season' && !isOutOfStock && (
                                 <div className="absolute top-2 right-2 z-10">
-                                        <div className={`p-1.5 rounded-full shadow-md ${seasonalTag === 'summer' ? 'bg-yellow-100 text-yellow-600' :
-                                                        seasonalTag === 'monsoon' ? 'bg-blue-100 text-blue-600' :
-                                                                seasonalTag === 'winter' ? 'bg-cyan-100 text-cyan-600' :
-                                                                        seasonalTag === 'autumn' ? 'bg-orange-100 text-orange-600' :
-                                                                                'bg-green-100 text-green-600'
-                                                }`} title={`Best in ${seasonalTag}`}>
+                                        <div className={`p-1.5 rounded-full shadow-md ${season === 'summer' ? 'bg-yellow-100 text-yellow-600' :
+                                                season === 'monsoon' ? 'bg-blue-100 text-blue-600' :
+                                                        season === 'winter' ? 'bg-cyan-100 text-cyan-600' :
+                                                                season === 'autumn' ? 'bg-orange-100 text-orange-600' :
+                                                                        'bg-green-100 text-green-600'
+                                                }`} title={`Best in ${season}`}>
                                                 <SeasonIcon className="w-3.5 h-3.5" />
                                         </div>
                                 </div>
