@@ -12,16 +12,16 @@
 /**
  * Backend API base URL
  * In development: Points to Firebase emulator
- * In production: Points to deployed Firebase Cloud Functions
+ * In production: Points to Vercel serverless functions (/api)
  */
 const getApiBaseUrl = () => {
         // If explicitly set in environment, use that
         if (process.env.REACT_APP_API_BASE_URL) {
                 return process.env.REACT_APP_API_BASE_URL;
         }
-        // In production, use Firebase Cloud Functions URL
+        // In production, use Vercel serverless functions
         if (process.env.NODE_ENV === 'production') {
-                return 'https://asia-south1-vending-machine-web.cloudfunctions.net/api';
+                return '/api';
         }
         // Default for local development
         return 'http://localhost:5001/vending-machine-web/asia-south1/api';
