@@ -15,8 +15,7 @@
 
 import { Request, Response } from 'express';
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
-import { db, FieldValue } from './firebase';
+import { db, FieldValue, Timestamp } from './firebase';
 import { validateDispenseInput, logValidationError } from './utils/validation';
 
 // ============================================
@@ -134,7 +133,7 @@ export const dispenseHandler = async (
       status: 'pending',
       command: 'DISPENSE',
       createdAt: FieldValue.serverTimestamp(),
-      expiresAt: admin.firestore.Timestamp.fromDate(
+      expiresAt: Timestamp.fromDate(
         new Date(Date.now() + 5 * 60 * 1000), // Expires in 5 minutes
       ),
     };

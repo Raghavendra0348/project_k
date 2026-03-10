@@ -6,7 +6,7 @@
  */
 
 import * as admin from 'firebase-admin';
-import { FieldValue as FirestoreFieldValue } from '@google-cloud/firestore';
+import { FieldValue as FirestoreFieldValue, Timestamp } from '@google-cloud/firestore';
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
@@ -18,6 +18,9 @@ export const db = admin.firestore();
 
 // Export FieldValue for timestamp and increment operations
 export const FieldValue = FirestoreFieldValue;
+
+// Export Timestamp for date conversions
+export { Timestamp };
 
 // Export Admin SDK for timestamp operations, etc.
 export const adminSDK = admin;

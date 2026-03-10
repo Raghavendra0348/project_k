@@ -33,7 +33,7 @@ import { openRazorpayCheckout } from '../services/razorpay';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES, ENABLE_PAYMENT_SIMULATION } from '../config/constants';
 
 // Icons for FilterBar
-import { Search, X, SlidersHorizontal, Package } from 'lucide-react';
+import { Search, X, SlidersHorizontal, Package, Flame } from 'lucide-react';
 
 /**
  * Simple FilterBar Component
@@ -93,6 +93,16 @@ const FilterBar = ({
                                                                 }`}
                                                 >
                                                         All Products
+                                                </button>
+                                                <button
+                                                        onClick={() => onCategoryChange('trending')}
+                                                        className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center gap-1 ${selectedCategory === 'trending'
+                                                                ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md scale-105'
+                                                                : 'bg-white/90 text-orange-600 border-2 border-orange-200 hover:border-orange-300 hover:bg-orange-50'
+                                                                }`}
+                                                >
+                                                        <Flame className="w-3.5 h-3.5" />
+                                                        Trending
                                                 </button>
                                                 {categories.map((category) => (
                                                         <button
@@ -247,10 +257,9 @@ const MachinePage = () => {
                                 icon: '🎉',
                         });
 
-                        // Trigger dispense (fire and forget)
-                        dispenseProduct(machineId, product.id, verifyResponse.orderId)
-                                .then(() => console.log('Dispense triggered'))
-                                .catch((err) => console.error('Dispense error:', err));
+                        // NOTE: dispenseProduct() call removed — verifyPayment already
+                        // creates the dispenseQueue entry for the ESP8266.
+                        console.log('Dispense already queued by verifyPayment, dispenseId:', verifyResponse.dispenseId);
 
                 } catch (error) {
                         console.error('Purchase error:', error);
@@ -284,6 +293,7 @@ const MachinePage = () => {
         /**
          * Simple filtering - ALL products visible by default
          * Only filters: search query and category selection
+         * Added: Trending filter option
          */
         const filteredAndSortedProducts = useMemo(() => {
                 if (!products || products.length === 0) {
@@ -292,8 +302,10 @@ const MachinePage = () => {
 
                 let filtered = [...products];
 
-                // Category filter
-                if (selectedCategory !== 'all') {
+                // Category filter (including trending)
+                if (selectedCategory === 'trending') {
+                        filtered = filtered.filter(p => p.trending?.isTrending);
+                } else if (selectedCategory !== 'all') {
                         filtered = filtered.filter(p => p.category === selectedCategory);
                 }
 
@@ -306,8 +318,18 @@ const MachinePage = () => {
                         );
                 }
 
-                // Simple alphabetical sort
-                filtered.sort((a, b) => a.name.localeCompare(b.name));
+                // Sort: Trending products first (by rank), then alphabetical
+                filtered.sort((a, b) => {
+                        // If both are trending, sort by rank
+                        if (a.trending?.isTrending && b.trending?.isTrending) {
+                                return (a.trending.rank || 999) - (b.trending.rank || 999);
+                        }
+                        // Trending products come first
+                        if (a.trending?.isTrending) return -1;
+                        if (b.trending?.isTrending) return 1;
+                        // Otherwise alphabetical
+                        return a.name.localeCompare(b.name);
+                });
 
                 return filtered;
         }, [products, selectedCategory, searchQuery]);

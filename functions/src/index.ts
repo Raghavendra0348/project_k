@@ -8,13 +8,35 @@
 import * as functions from 'firebase-functions';
 import cors from 'cors';
 import express from 'express';
-import { db, FieldValue } from './firebase';
 
 // Import function handlers
 import { createOrderHandler } from './createOrder';
 import { verifyPaymentHandler } from './verifyPayment';
 import { dispenseHandler, dispenseConfirmHandler } from './dispense';
 import { healthCheckHandler } from './health';
+import {
+  getAlertsHandler,
+  acknowledgeAlertHandler,
+  resolveAlertHandler,
+  getLowStockProductsHandler,
+  checkAllStockHandler,
+} from './stockAlerts';
+import {
+  getAllProductsHandler,
+  getProductHandler,
+  createProductHandler,
+  updateProductHandler,
+  deleteProductHandler,
+  getAllMachinesHandler,
+  updateStockHandler,
+} from './adminProducts';
+
+// Import ESP8266 sync functions (Firestore-only, no RTDB dependency)
+import {
+  syncDispenseToRTDB,
+  syncDispenseUpdateToRTDB,
+  esp8266ConfirmDispense,
+} from './esp8266Sync';
 
 // ============================================
 // EXPRESS APP SETUP WITH CORS
@@ -31,7 +53,7 @@ const corsOptions: cors.CorsOptions = {
     process.env.NODE_ENV === 'production' && allowedOrigins.length > 0
       ? allowedOrigins
       : true, // Allow all origins in development
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 };
@@ -87,6 +109,103 @@ app.post('/dispense', dispenseHandler);
  * Returns: { success: boolean, message: string }
  */
 app.post('/dispense/confirm', dispenseConfirmHandler);
+
+// ============================================
+// ADMIN API ROUTES
+// ============================================
+
+/**
+ * Get all stock alerts
+ * GET /admin/alerts
+ * Query: ?status=pending|acknowledged|resolved (optional)
+ * Returns: { success: boolean, data: StockAlert[] }
+ */
+app.get('/admin/alerts', getAlertsHandler);
+
+/**
+ * Acknowledge a stock alert
+ * POST /admin/alerts/:alertId/acknowledge
+ * Returns: { success: boolean, message: string }
+ */
+app.post('/admin/alerts/:alertId/acknowledge', acknowledgeAlertHandler);
+
+/**
+ * Resolve a stock alert (after refilling)
+ * POST /admin/alerts/:alertId/resolve
+ * Returns: { success: boolean, message: string }
+ */
+app.post('/admin/alerts/:alertId/resolve', resolveAlertHandler);
+
+/**
+ * Get all low stock products
+ * GET /admin/low-stock
+ * Returns: { success: boolean, data: Product[], threshold: number }
+ */
+app.get('/admin/low-stock', getLowStockProductsHandler);
+
+/**
+ * Check all products and create alerts for low stock
+ * POST /admin/check-stock
+ * Returns: { success: boolean, alertsCreated: number, alertsSkipped: number }
+ */
+app.post('/admin/check-stock', checkAllStockHandler);
+
+// ============================================
+// ADMIN PRODUCT MANAGEMENT ROUTES
+// ============================================
+
+/**
+ * Get all machines (for dropdowns)
+ * GET /admin/machines
+ * Returns: { success: boolean, data: Machine[] }
+ */
+app.get('/admin/machines', getAllMachinesHandler);
+
+/**
+ * Get all products
+ * GET /admin/products
+ * Query: ?machineId=xxx (optional)
+ * Returns: { success: boolean, data: Product[] }
+ */
+app.get('/admin/products', getAllProductsHandler);
+
+/**
+ * Get a single product
+ * GET /admin/products/:productId
+ * Returns: { success: boolean, data: Product }
+ */
+app.get('/admin/products/:productId', getProductHandler);
+
+/**
+ * Create a new product
+ * POST /admin/products
+ * Body: { name, price, stock, machineId, category?, imageUrl?, description? }
+ * Returns: { success: boolean, data: Product }
+ */
+app.post('/admin/products', createProductHandler);
+
+/**
+ * Update a product
+ * PUT /admin/products/:productId
+ * Body: { name?, price?, stock?, category?, imageUrl?, description? }
+ * Returns: { success: boolean, data: Product }
+ */
+app.put('/admin/products/:productId', updateProductHandler);
+
+/**
+ * Quick stock update
+ * PATCH /admin/products/:productId/stock
+ * Body: { stock: number }
+ * Returns: { success: boolean, message: string }
+ */
+app.patch('/admin/products/:productId/stock', updateStockHandler);
+
+/**
+ * Delete a product
+ * DELETE /admin/products/:productId
+ * Returns: { success: boolean, message: string }
+ */
+app.delete('/admin/products/:productId', deleteProductHandler);
 
 // ============================================
 // EXPORT CLOUD FUNCTION
@@ -147,21 +266,29 @@ export const onPaymentSuccess = functions
       before.paymentStatus !== 'success' &&
       after.paymentStatus === 'success'
     ) {
-      functions.logger.info('Payment successful, triggering dispense:', {
+      functions.logger.info('Payment successful (dispense already queued by verifyPayment):', {
         orderId,
         machineId: after.machineId,
         productId: after.productId,
       });
 
-      // Add to dispense queue for the vending machine to pick up
-      await db.collection('dispenseQueue').add({
-        orderId,
-        machineId: after.machineId,
-        productId: after.productId,
-        status: 'pending',
-        createdAt: FieldValue.serverTimestamp(),
-      });
+      // NOTE: Do NOT add to dispenseQueue here — verifyPayment.ts already
+      // creates the dispense command. Adding here would cause duplicates
+      // and the ESP8266 would loop the same product on the LCD.
     }
 
     return null;
   });
+
+// ============================================
+// ESP8266 SYNC EXPORTS
+// ============================================
+
+// Firestore trigger: Log & sync new dispense commands
+export { syncDispenseToRTDB };
+
+// Firestore trigger: Sync dispense status updates
+export { syncDispenseUpdateToRTDB };
+
+// HTTP endpoint for ESP8266 to confirm dispense completion
+export { esp8266ConfirmDispense };

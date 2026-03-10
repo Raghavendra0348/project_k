@@ -3,10 +3,11 @@
  *
  * Glassmorphism product card with frosted glass effect,
  * gradient accents, and animated stock indicators.
+ * Now includes trending badges and sales data.
  */
 
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Package, AlertTriangle } from 'lucide-react';
+import { ShoppingCart, Package, AlertTriangle, Flame, TrendingUp, TrendingDown, Sun, Cloud, Snowflake, Leaf, CheckCircle } from 'lucide-react';
 import { formatPrice } from '../services/razorpay';
 import { STOCK_THRESHOLDS } from '../config/constants';
 
@@ -44,12 +45,27 @@ const getStockStatus = (stock) => {
 };
 
 const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
-        const { name, price, stock, imageUrl, _stockChanged } = product;
+        const { name, price, stock, imageUrl, _stockChanged, trending, salesData, seasonalTag } = product;
         const [showAnimation, setShowAnimation] = useState(false);
 
         const stockStatus = getStockStatus(stock);
         const isOutOfStock = stock === 0;
         const canBuy = !disabled && !isOutOfStock && !purchasing;
+        const isTrending = trending?.isTrending;
+
+        // Season icon mapping
+        const getSeasonIcon = (season) => {
+                const icons = {
+                        summer: Sun,
+                        monsoon: Cloud,
+                        winter: Snowflake,
+                        autumn: Leaf,
+                        'all-season': CheckCircle,
+                };
+                return icons[season] || CheckCircle;
+        };
+
+        const SeasonIcon = getSeasonIcon(seasonalTag);
 
         useEffect(() => {
                 if (_stockChanged) {
@@ -65,6 +81,28 @@ const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
 
         return (
                 <div className={`product-card relative ${showAnimation ? 'flash-update' : ''} ${isOutOfStock ? 'opacity-70' : ''}`}>
+                        {/* Trending Badge */}
+                        {isTrending && !isOutOfStock && (
+                                <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold shadow-lg animate-pulse">
+                                        <Flame className="w-3 h-3" />
+                                        <span>#{trending.rank} Trending</span>
+                                </div>
+                        )}
+
+                        {/* Season Badge */}
+                        {seasonalTag && !isOutOfStock && (
+                                <div className="absolute top-2 right-2 z-10">
+                                        <div className={`p-1.5 rounded-full shadow-md ${seasonalTag === 'summer' ? 'bg-yellow-100 text-yellow-600' :
+                                                        seasonalTag === 'monsoon' ? 'bg-blue-100 text-blue-600' :
+                                                                seasonalTag === 'winter' ? 'bg-cyan-100 text-cyan-600' :
+                                                                        seasonalTag === 'autumn' ? 'bg-orange-100 text-orange-600' :
+                                                                                'bg-green-100 text-green-600'
+                                                }`} title={`Best in ${seasonalTag}`}>
+                                                <SeasonIcon className="w-3.5 h-3.5" />
+                                        </div>
+                                </div>
+                        )}
+
                         {/* Out of Stock Badge */}
                         {isOutOfStock && (
                                 <div className="badge-out-of-stock flex items-center gap-1 z-10 text-xs sm:text-xs">
@@ -99,6 +137,13 @@ const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
                                         {name}
                                 </h3>
 
+                                {/* Trending reason */}
+                                {isTrending && trending.reason && (
+                                        <p className="text-xs text-orange-600 mb-1 truncate" title={trending.reason}>
+                                                🔥 {trending.reason}
+                                        </p>
+                                )}
+
                                 {/* Price with gradient */}
                                 <p className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">
                                         <span className="bg-clip-text text-transparent"
@@ -106,6 +151,25 @@ const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
                                                 {formatPrice(price)}
                                         </span>
                                 </p>
+
+                                {/* Sales Data */}
+                                {salesData && (
+                                        <div className="flex items-center gap-2 mb-2">
+                                                <span className="text-xs text-gray-500">{salesData.lastWeek} sold this week</span>
+                                                {salesData.trend === 'up' && (
+                                                        <span className="flex items-center text-xs text-green-600">
+                                                                <TrendingUp className="w-3 h-3 mr-0.5" />
+                                                                +{salesData.percentChange}%
+                                                        </span>
+                                                )}
+                                                {salesData.trend === 'down' && (
+                                                        <span className="flex items-center text-xs text-red-500">
+                                                                <TrendingDown className="w-3 h-3 mr-0.5" />
+                                                                {salesData.percentChange}%
+                                                        </span>
+                                                )}
+                                        </div>
+                                )}
 
                                 {/* Stock Indicator */}
                                 <div className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full mb-3 sm:mb-4 ${showAnimation ? 'stock-changed' : ''}`}

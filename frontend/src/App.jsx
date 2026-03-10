@@ -17,6 +17,7 @@ import MachinePage from './pages/MachinePage';
 import NotFound from './pages/NotFound';
 import HomePage from './pages/HomePage';
 import QRGeneratorPage from './pages/QRGeneratorPage';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
         return (
@@ -63,6 +64,9 @@ function App() {
 
                                 {/* QR Code Generator (Admin Tool) */}
                                 <Route path="/admin/qr-generator" element={<QRGeneratorPage />} />
+
+                                {/* Admin Dashboard - Stock Alerts & Product Management */}
+                                <Route path="/admin" element={<AdminDashboard />} />
 
                                 {/* 404 Not Found */}
                                 <Route path="/not-found" element={<NotFound />} />

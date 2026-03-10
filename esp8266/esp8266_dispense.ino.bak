@@ -1,0 +1,417 @@
+/**
+ * ESP8266 Vending Machine Controller
+ *
+ * Uses Firestore REST API to:
+ * 1. Poll dispenseQueue for pending commands
+ * 2. Dispense product using MG996R servo motor
+ * 3. Display status on LCD 16x2 I2C
+ * 4. Update status to completed
+ *
+ * Required Libraries:
+ * - ESP8266WiFi (built-in)
+ * - ESP8266HTTPClient (built-in)
+ * - ArduinoJson by Benoit Blanchon
+ * - Servo (built-in for ESP8266)
+ * - LiquidCrystal_I2C by Frank de Brabander
+ *
+ * Hardware:
+ * - MG996R Servo Motor
+ * - LCD 16x2 I2C Module
+ */
+
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClientSecure.h>
+#include <ArduinoJson.h>
+#include <Servo.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// ============================================
+// CONFIGURATION - MODIFY THESE VALUES
+// ============================================
+
+#define WIFI_SSID "Password"
+#define WIFI_PASSWORD "username"
+
+#define FIREBASE_PROJECT_ID "vending-machine-web"
+#define API_KEY "AIzaSyDuE7R5NI01rQdYY5BrPKfoMqK9bcRYo84"
+
+// *** EMULATOR MODE ***
+// Set to true when using Firebase emulator, false for production
+#define USE_EMULATOR true
+// Your computer's local IP (run `hostname -I` to find it)
+#define EMULATOR_HOST "10.211.191.164"
+#define EMULATOR_FIRESTORE_PORT 8080
+
+// Machine configuration
+#define MACHINE_ID "machine_001"
+
+// Hardware pins
+#define SERVO_PIN D4 // GPIO2 - MG996R signal wire
+#define LED_PIN LED_BUILTIN
+
+// I2C pins for LCD (default on ESP8266)
+// SDA = D2 (GPIO4)
+// SCL = D1 (GPIO5)
+
+// Servo positions
+#define SERVO_REST_POSITION 0       // Rest position (degrees)
+#define SERVO_DISPENSE_POSITION 180 // Dispense position (degrees)
+
+// Timing
+#define DISPENSE_DURATION_MS 1500 // Time to hold dispense position
+#define POLL_INTERVAL_MS 3000     // How often to check for commands
+
+// LCD I2C address (try 0x27 or 0x3F)
+#define LCD_ADDRESS 0x27
+#define LCD_COLS 16
+#define LCD_ROWS 2
+
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
+
+// Firestore host — selected based on USE_EMULATOR flag
+#if USE_EMULATOR
+const char *firestoreHost = EMULATOR_HOST;
+const int firestorePort = EMULATOR_FIRESTORE_PORT;
+const bool useSSL = false; // emulator uses plain HTTP
+#else
+const char *firestoreHost = "firestore.googleapis.com";
+const int firestorePort = 443;
+const bool useSSL = true; // production uses HTTPS
+#endif
+
+WiFiClientSecure secureClient;
+WiFiClient plainClient;
+unsigned long lastPollTime = 0;
+
+Servo dispenserServo;
+LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLS, LCD_ROWS);
+
+// ============================================
+// SETUP
+// ============================================
+
+void setup()
+{
+        Serial.begin(115200);
+        Serial.println("\n\n=== ESP8266 Vending Machine Controller ===");
+
+        // Initialize LCD
+        Wire.begin(D2, D1); // SDA, SCL
+        lcd.init();
+        lcd.backlight();
+        lcdPrint("Vending Machine", "Initializing...");
+
+        // Initialize LED
+        pinMode(LED_PIN, OUTPUT);
+        digitalWrite(LED_PIN, HIGH); // LED OFF
+
+        // Initialize Servo
+        dispenserServo.attach(SERVO_PIN);
+        dispenserServo.write(SERVO_REST_POSITION);
+        delay(500);
+
+        // Connect to WiFi
+        lcdPrint("Connecting to", "WiFi...");
+        connectWiFi();
+
+        // Allow insecure HTTPS (only needed for production)
+        secureClient.setInsecure();
+
+        lcdPrint("Ready!", "Waiting orders..");
+        Serial.println("Setup complete. Polling for dispense commands...");
+        blinkLED(3, 200);
+}
+
+// ============================================
+// MAIN LOOP
+// ============================================
+
+void loop()
+{
+        // Check WiFi connection
+        if (WiFi.status() != WL_CONNECTED)
+        {
+                lcdPrint("WiFi Lost!", "Reconnecting...");
+                Serial.println("WiFi disconnected. Reconnecting...");
+                connectWiFi();
+        }
+
+        // Poll for dispense commands
+        if (millis() - lastPollTime >= POLL_INTERVAL_MS)
+        {
+                checkDispenseQueue();
+                lastPollTime = millis();
+        }
+
+        yield();
+}
+
+// ============================================
+// LCD HELPER FUNCTIONS
+// ============================================
+
+void lcdPrint(String line1, String line2)
+{
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print(line1.substring(0, 16));
+        lcd.setCursor(0, 1);
+        lcd.print(line2.substring(0, 16));
+}
+
+void lcdPrintLine(int row, String text)
+{
+        lcd.setCursor(0, row);
+        lcd.print("                "); // Clear line
+        lcd.setCursor(0, row);
+        lcd.print(text.substring(0, 16));
+}
+
+// ============================================
+// WIFI CONNECTION
+// ============================================
+
+void connectWiFi()
+{
+        Serial.print("Connecting to WiFi: ");
+        Serial.println(WIFI_SSID);
+
+        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+        int attempts = 0;
+        while (WiFi.status() != WL_CONNECTED && attempts < 30)
+        {
+                delay(500);
+                Serial.print(".");
+                digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+
+                // Update LCD with dots
+                if (attempts % 4 == 0)
+                {
+                        lcdPrintLine(1, "WiFi" + String(".").substring(0, (attempts / 4) % 4 + 1));
+                }
+                attempts++;
+        }
+
+        if (WiFi.status() == WL_CONNECTED)
+        {
+                Serial.println("\nWiFi connected!");
+                Serial.print("IP: ");
+                Serial.println(WiFi.localIP());
+                lcdPrint("WiFi Connected!", WiFi.localIP().toString());
+                delay(1500);
+        }
+        else
+        {
+                Serial.println("\nWiFi failed. Restarting...");
+                lcdPrint("WiFi Failed!", "Restarting...");
+                delay(2000);
+                ESP.restart();
+        }
+}
+
+// ============================================
+// CHECK DISPENSE QUEUE (Firestore Query)
+// ============================================
+
+void checkDispenseQueue()
+{
+        Serial.println("Checking dispenseQueue...");
+
+        HTTPClient http;
+
+        String protocol = useSSL ? "https" : "http";
+        String portStr = useSSL ? "" : (":" + String(firestorePort));
+        String url = protocol + "://" + String(firestoreHost) + portStr +
+                     "/v1/projects/" + FIREBASE_PROJECT_ID +
+                     "/databases/(default)/documents:runQuery?key=" + API_KEY;
+
+        Serial.println("URL: " + url);
+
+        if (useSSL)
+        {
+                http.begin(secureClient, url);
+        }
+        else
+        {
+                http.begin(plainClient, url);
+        }
+        http.addHeader("Content-Type", "application/json");
+
+        String queryPayload = "{\"structuredQuery\":{\"from\":[{\"collectionId\":\"dispenseQueue\"}],\"where\":{\"compositeFilter\":{\"op\":\"AND\",\"filters\":[{\"fieldFilter\":{\"field\":{\"fieldPath\":\"machineId\"},\"op\":\"EQUAL\",\"value\":{\"stringValue\":\"" + String(MACHINE_ID) + "\"}}},{\"fieldFilter\":{\"field\":{\"fieldPath\":\"status\"},\"op\":\"EQUAL\",\"value\":{\"stringValue\":\"pending\"}}}]}},\"limit\":1}}";
+
+        int httpCode = http.POST(queryPayload);
+
+        if (httpCode == 200)
+        {
+                String response = http.getString();
+
+                DynamicJsonDocument doc(4096);
+                DeserializationError error = deserializeJson(doc, response);
+
+                if (error)
+                {
+                        Serial.print("JSON parse error: ");
+                        Serial.println(error.c_str());
+                        http.end();
+                        return;
+                }
+
+                JsonArray results = doc.as<JsonArray>();
+
+                for (JsonObject result : results)
+                {
+                        if (result.containsKey("document"))
+                        {
+                                JsonObject document = result["document"];
+                                String docName = document["name"].as<String>();
+
+                                int lastSlash = docName.lastIndexOf('/');
+                                String dispenseId = docName.substring(lastSlash + 1);
+
+                                JsonObject fields = document["fields"];
+                                String productId = fields["productId"]["stringValue"].as<String>();
+                                String orderId = fields["orderId"]["stringValue"].as<String>();
+
+                                Serial.println("\n=== DISPENSE COMMAND FOUND ===");
+                                Serial.print("Dispense ID: ");
+                                Serial.println(dispenseId);
+                                Serial.print("Product ID: ");
+                                Serial.println(productId);
+
+                                // Update LCD
+                                lcdPrint("Order Received!", productId);
+                                delay(1000);
+
+                                // Dispense the product
+                                dispenseProduct(productId);
+
+                                // Update status to completed
+                                updateDispenseStatus(dispenseId);
+
+                                // Show success on LCD
+                                lcdPrint("Dispensed!", "Thank you!");
+                                delay(2000);
+
+                                // Return to ready state
+                                lcdPrint("Ready!", "Waiting orders..");
+
+                                Serial.println("=== DISPENSE COMPLETE ===\n");
+                        }
+                }
+        }
+        else
+        {
+                Serial.print("Query failed. HTTP code: ");
+                Serial.println(httpCode);
+                if (httpCode > 0)
+                {
+                        Serial.println(http.getString());
+                }
+        }
+
+        http.end();
+}
+
+// ============================================
+// DISPENSE PRODUCT (Servo Motor)
+// ============================================
+
+void dispenseProduct(String productId)
+{
+        Serial.println(">>> DISPENSING PRODUCT (360° Servo) <<<");
+        Serial.print("Product: ");
+        Serial.println(productId);
+
+        // Update LCD
+        lcdPrint("Dispensing...", productId);
+
+        // LED ON
+        digitalWrite(LED_PIN, LOW);
+
+        // Start servo rotation (forward)
+        Serial.println("Servo rotating to dispense...");
+        dispenserServo.write(120); // 120 = forward, 60 = reverse, 90 = stop
+
+        // Wait for product to drop (adjust time as needed)
+        delay(DISPENSE_DURATION_MS);
+
+        // Stop servo
+        Serial.println("Servo stopping...");
+        dispenserServo.write(90); // 90 = stop
+
+        // LED OFF
+        digitalWrite(LED_PIN, HIGH);
+
+        Serial.println(">>> PRODUCT DISPENSED <<<");
+}
+
+// ============================================
+// UPDATE DISPENSE STATUS IN FIRESTORE
+// ============================================
+
+void updateDispenseStatus(String dispenseId)
+{
+        Serial.print("Updating status to: completed");
+        Serial.println();
+
+        lcdPrintLine(1, "Confirming...");
+
+        HTTPClient http;
+
+        String protocol = useSSL ? "https" : "http";
+        String portStr = useSSL ? "" : (":" + String(firestorePort));
+        String url = protocol + "://" + String(firestoreHost) + portStr +
+                     "/v1/projects/" + FIREBASE_PROJECT_ID +
+                     "/databases/(default)/documents/dispenseQueue/" + dispenseId +
+                     "?updateMask.fieldPaths=status&key=" + API_KEY;
+
+        if (useSSL)
+        {
+                http.begin(secureClient, url);
+        }
+        else
+        {
+                http.begin(plainClient, url);
+        }
+        http.addHeader("Content-Type", "application/json");
+
+        String payload = "{\"fields\":{\"status\":{\"stringValue\":\"completed\"}}}";
+
+        int httpCode = http.PATCH(payload);
+
+        if (httpCode == 200)
+        {
+                Serial.println("Status updated successfully!");
+        }
+        else
+        {
+                Serial.print("Update failed. HTTP code: ");
+                Serial.println(httpCode);
+                if (httpCode > 0)
+                {
+                        Serial.println(http.getString());
+                }
+        }
+
+        http.end();
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+void blinkLED(int times, int delayMs)
+{
+        for (int i = 0; i < times; i++)
+        {
+                digitalWrite(LED_PIN, LOW);
+                delay(delayMs);
+                digitalWrite(LED_PIN, HIGH);
+                delay(delayMs);
+        }
+}

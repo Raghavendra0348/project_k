@@ -24,12 +24,13 @@
 
 import { Request, Response } from 'express';
 import * as functions from 'firebase-functions';
-import { db, FieldValue } from './firebase';
+import { db, FieldValue, Timestamp } from './firebase';
 import { verifyPaymentSignature, getRazorpayInstance } from './utils/razorpay';
 import {
   validateVerifyPaymentInput,
   logValidationError,
 } from './utils/validation';
+import { checkAndCreateStockAlert } from './stockAlerts';
 
 // ============================================
 // TYPE DEFINITIONS
@@ -224,6 +225,10 @@ export const verifyPaymentHandler = async (
           newStock: product.stock - 1,
           orderId: internalOrderId,
         });
+
+        // Check and create stock alert if stock is low
+        // Note: product.stock - 1 is the new stock after this purchase
+        await checkAndCreateStockAlert(productId, product.stock - 1);
       });
     } catch (transactionError) {
       functions.logger.error('Transaction failed:', transactionError);
@@ -290,7 +295,41 @@ export const verifyPaymentHandler = async (
     }
 
     // ----------------------------------------
-    // Step 4: Success Response
+    // Step 4: Add to Dispense Queue for ESP8266
+    // ----------------------------------------
+    // This creates a document that ESP8266 can listen to in real-time
+    const dispenseCommand = {
+      orderId: internalOrderId,
+      machineId,
+      productId,
+      status: 'pending',
+      command: 'DISPENSE',
+      createdAt: FieldValue.serverTimestamp(),
+      expiresAt: Timestamp.fromDate(
+        new Date(Date.now() + 5 * 60 * 1000), // Expires in 5 minutes
+      ),
+    };
+
+    const dispenseRef = await db
+      .collection('dispenseQueue')
+      .add(dispenseCommand);
+
+    // Update order with dispense queue reference
+    await db.collection('orders').doc(internalOrderId).update({
+      dispenseInitiated: true,
+      dispenseQueueId: dispenseRef.id,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    functions.logger.info('Dispense command added to queue for ESP8266', {
+      dispenseId: dispenseRef.id,
+      orderId: internalOrderId,
+      machineId,
+      productId,
+    });
+
+    // ----------------------------------------
+    // Step 5: Success Response
     // ----------------------------------------
     functions.logger.info('Payment verified and stock updated successfully', {
       orderId: internalOrderId,
@@ -301,6 +340,7 @@ export const verifyPaymentHandler = async (
     res.status(200).json({
       success: true,
       orderId: internalOrderId,
+      dispenseId: dispenseRef.id,
       message: 'Payment successful! Your product will be dispensed.',
     } as VerifyPaymentResponse);
   } catch (error) {

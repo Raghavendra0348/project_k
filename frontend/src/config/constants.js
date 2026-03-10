@@ -37,7 +37,7 @@ export const RAZORPAY_KEY_ID = process.env.REACT_APP_RAZORPAY_KEY_ID || '';
 export const RAZORPAY_OPTIONS = {
         name: 'Smart Vending',
         description: 'Vending Machine Purchase',
-        image: '/logo192.png', // Your logo
+        // image: '/logo192.png', // Disabled — causes CORS error when Razorpay fetches from localhost
         theme: {
                 color: '#3b82f6', // Primary blue
         },

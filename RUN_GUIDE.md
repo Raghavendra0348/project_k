@@ -57,12 +57,12 @@ REACT_APP_EMULATOR_HOST=10.33.184.164
 
 ---
 
-## ▶️ Running the Project (3 Terminal Windows)
+## ▶️ Running the Project (2-3 Terminal Windows)
 
-### Terminal 1: Start Firebase Emulators
+### Terminal 1: Start Firebase Emulators (with Data Persistence)
 ```bash
 cd /home/a-raghavendra/Desktop/github_repos/project1
-firebase emulators:start --only functions,firestore --project vending-machine-web
+firebase emulators:start --only functions,firestore --project vending-machine-web --export-on-exit=./emulator-data --import=./emulator-data
 ```
 
 **✅ Wait for this message:**
@@ -76,7 +76,7 @@ firebase emulators:start --only functions,firestore --project vending-machine-we
 
 ---
 
-### Terminal 2: Seed Database with Test Data
+### Terminal 2: Seed Database (ONLY FIRST TIME or when resetting data)
 ```bash
 cd /home/a-raghavendra/Desktop/github_repos/project1/functions
 sleep 10 && npm run seed:emulator
@@ -91,9 +91,11 @@ sleep 10 && npm run seed:emulator
   - Products: 22
 ```
 
+**💡 Note:** With persistence enabled, you only need to seed once! The data will be saved in `emulator-data/` and automatically restored on next start. Skip this terminal if you already have seeded data.
+
 ---
 
-### Terminal 3: Start Frontend Development Server
+### Terminal 3 (or 2 if skipping seed): Start Frontend Development Server
 ```bash
 cd /home/a-raghavendra/Desktop/github_repos/project1/frontend
 HOST=0.0.0.0 PORT=3000 npm start
@@ -261,17 +263,37 @@ pkill -f "react-scripts start"
 # 2. Wait 3 seconds
 sleep 3
 
-# 3. Start Terminal 1 (Emulators)
+# 3. Start Terminal 1 (Emulators with persistence)
 cd /home/a-raghavendra/Desktop/github_repos/project1
-firebase emulators:start --only functions,firestore --project vending-machine-web
+firebase emulators:start --only functions,firestore --project vending-machine-web --export-on-exit=./emulator-data --import=./emulator-data
 
-# 4. In new terminal - Terminal 2 (Seed)
+# 4. (OPTIONAL - Only if you need fresh data) Terminal 2 (Seed)
 cd /home/a-raghavendra/Desktop/github_repos/project1/functions
 sleep 15 && npm run seed:emulator
 
-# 5. In new terminal - Terminal 3 (Frontend)
+# 5. In new terminal - Terminal 2/3 (Frontend)
 cd /home/a-raghavendra/Desktop/github_repos/project1/frontend
 HOST=0.0.0.0 PORT=3000 npm start
+```
+
+### 🗑️ Reset Database (Fresh Start)
+
+To completely clear all data and start fresh:
+
+```bash
+# Stop emulators
+pkill -f "firebase emulators"
+
+# Delete persisted data
+cd /home/a-raghavendra/Desktop/github_repos/project1
+rm -rf emulator-data
+
+# Restart emulators and re-seed
+firebase emulators:start --only functions,firestore --project vending-machine-web --export-on-exit=./emulator-data --import=./emulator-data
+
+# In new terminal, seed the database
+cd functions
+sleep 10 && npm run seed:emulator
 ```
 
 ---

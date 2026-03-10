@@ -55,6 +55,7 @@
                 },
                 "ui": {
                         "enabled": false
-                }
+                },
+                "singleProjectMode": true
         }
 }
