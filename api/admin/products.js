@@ -3,23 +3,22 @@
  * GET /api/admin/products
  */
 
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+const admin = require('firebase-admin');
 
 // Initialize Firebase Admin
-if (!getApps().length) {
-        initializeApp({
-                credential: cert({
+if (!admin.apps.length) {
+        admin.initializeApp({
+                credential: admin.credential.cert({
                         projectId: process.env.FIREBASE_PROJECT_ID,
                         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+                        privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
                 }),
         });
 }
 
-const db = getFirestore();
+const db = admin.firestore();
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
         // CORS headers
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -36,7 +35,7 @@ export default async function handler(req, res) {
         } else {
                 return res.status(405).json({ success: false, error: 'Method not allowed' });
         }
-}
+};
 
 async function handleGetProducts(req, res) {
         try {
