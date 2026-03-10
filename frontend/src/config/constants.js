@@ -12,9 +12,23 @@
 /**
  * Backend API base URL
  * In development: Points to Firebase emulator
- * In production: Points to deployed Cloud Functions
+ * In production on Vercel: Points to /api (same domain)
+ * In production on Firebase: Points to deployed Cloud Functions
  */
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/vending-machine-web/asia-south1/api';
+const getApiBaseUrl = () => {
+        // If explicitly set in environment, use that
+        if (process.env.REACT_APP_API_BASE_URL) {
+                return process.env.REACT_APP_API_BASE_URL;
+        }
+        // In production, use relative /api path (Vercel serverless functions)
+        if (process.env.NODE_ENV === 'production') {
+                return '/api';
+        }
+        // Default for local development
+        return 'http://localhost:5001/vending-machine-web/asia-south1/api';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 /**
  * Enable mock payment flow during local development

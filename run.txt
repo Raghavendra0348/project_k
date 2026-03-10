@@ -13,3 +13,9 @@ cd /home/a-raghavendra/Desktop/github_repos/project1/frontend
 HOST=0.0.0.0 PORT=3000 npm start
 
 lsof -ti:5001,8080,3000 2>/dev/null | xargs -r kill -9 2>/dev/null; echo "Killed old processes on ports 5001, 8080, 3000"
+
+
+
+cd /home/a-raghavendra/Desktop/github_repos/project1 && firebase deploy --only firestore:rules 2>&1
+Firestore rules deployed. Now deploying Cloud Functions:
+

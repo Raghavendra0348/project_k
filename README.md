@@ -2,6 +2,18 @@
 
 A production-ready, scalable vending machine web application that enables real-time product browsing, purchasing, and inventory management through QR code scanning.
 
+> 📚 **[View Full Documentation Index](DOCUMENTATION_INDEX.md)** - Complete guide to all documentation files
+
+## ✨ Key Features
+
+- 🔳 **QR Code Scanning** - Instant machine access via mobile camera
+- 💳 **Razorpay Payments** - Secure payment processing
+- 📊 **Real-time Updates** - Live stock levels across all users
+- 📈 **Analytics Dashboard** - Charts, graphs, and insights (NEW!)
+- 🔔 **Stock Alerts** - Automated low-stock notifications
+- 🤖 **ESP8266 Integration** - IoT hardware support for dispensing
+- 📱 **Mobile-First Design** - Optimized for all screen sizes
+
 ## 🏗️ System Architecture
 
 ```

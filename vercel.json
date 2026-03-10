@@ -1,40 +1,52 @@
 {
-        "version": 2,
-        "builds": [
-                {
-                        "src": "frontend/package.json",
-                        "use": "@vercel/static-build",
-                        "config": {
-                                "distDir": "build"
-                        }
-                }
-        ],
-        "routes": [
-                {
-                        "src": "/static/(.*)",
-                        "dest": "/frontend/build/static/$1"
-                },
-                {
-                        "src": "/favicon.ico",
-                        "dest": "/frontend/build/favicon.ico"
-                },
-                {
-                        "src": "/manifest.json",
-                        "dest": "/frontend/build/manifest.json"
-                },
-                {
-                        "src": "/(.*)",
-                        "dest": "/frontend/build/index.html"
-                }
-        ],
-        "env": {
-                "REACT_APP_FIREBASE_API_KEY": "@firebase-api-key",
-                "REACT_APP_FIREBASE_AUTH_DOMAIN": "@firebase-auth-domain",
-                "REACT_APP_FIREBASE_PROJECT_ID": "@firebase-project-id",
-                "REACT_APP_FIREBASE_STORAGE_BUCKET": "@firebase-storage-bucket",
-                "REACT_APP_FIREBASE_MESSAGING_SENDER_ID": "@firebase-messaging-sender-id",
-                "REACT_APP_FIREBASE_APP_ID": "@firebase-app-id",
-                "REACT_APP_RAZORPAY_KEY_ID": "@razorpay-key-id",
-                "REACT_APP_API_BASE_URL": "@api-base-url"
-        }
+  "version": 2,
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/build",
+  "installCommand": "cd frontend && npm install",
+  "framework": null,
+  "functions": {
+    "frontend/api/*.js": {
+      "runtime": "@vercel/node@3.0.0"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/createOrder",
+      "destination": "/frontend/api/createOrder.js"
+    },
+    {
+      "source": "/api/verifyPayment",
+      "destination": "/frontend/api/verifyPayment.js"
+    },
+    {
+      "source": "/api/products",
+      "destination": "/frontend/api/products.js"
+    },
+    {
+      "source": "/api/machines",
+      "destination": "/frontend/api/machines.js"
+    },
+    {
+      "source": "/api/alerts",
+      "destination": "/frontend/api/alerts.js"
+    },
+    {
+      "source": "/api/lowstock",
+      "destination": "/frontend/api/lowstock.js"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    }
+  ]
 }
