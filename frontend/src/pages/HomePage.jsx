@@ -13,8 +13,7 @@ import {
         Camera, X, Sparkles, ChevronRight, Shield,
         Clock, Flashlight, FlashlightOff, Image as ImageIcon,
 } from 'lucide-react';
-import { QrReader } from 'react-qr-reader';
-import QrScanner from 'qr-scanner';
+import { Html5Qrcode } from 'html5-qrcode';
 import toast from 'react-hot-toast';
 
 const HomePage = () => {
@@ -25,6 +24,8 @@ const HomePage = () => {
         const videoTrackRef = useRef(null);
         const stepsRef = useRef(null);
         const [stepsVisible, setStepsVisible] = useState(false);
+        const html5QrCodeRef = useRef(null);
+        const scannerIdRef = useRef('qr-reader-' + Math.random().toString(36).substr(2, 9));
 
         // Animated text typing effect
         const taglines = [
@@ -78,6 +79,55 @@ const HomePage = () => {
                         }
                 };
         }, [stepsVisible]);
+
+        // Initialize and cleanup html5-qrcode scanner
+        useEffect(() => {
+                if (!showScanner) return;
+
+                const scannerId = scannerIdRef.current;
+
+                const startScanner = async () => {
+                        try {
+                                html5QrCodeRef.current = new Html5Qrcode(scannerId);
+
+                                await html5QrCodeRef.current.start(
+                                        { facingMode: "environment" },
+                                        {
+                                                fps: 10,
+                                                qrbox: { width: 250, height: 250 }
+                                        },
+                                        (decodedText) => {
+                                                if (!scanProcessedRef.current) {
+                                                        handleScan({ text: decodedText });
+                                                }
+                                        },
+                                        (errorMessage) => {
+                                                // Ignore common scanning messages
+                                        }
+                                );
+
+                                // Get video track for torch control
+                                const stream = html5QrCodeRef.current.getRunningTrackCameraCapabilities();
+                                if (stream) {
+                                        videoTrackRef.current = stream;
+                                }
+                        } catch (err) {
+                                console.error('Scanner start error:', err);
+                                handleError(err);
+                        }
+                };
+
+                startScanner();
+
+                return () => {
+                        if (html5QrCodeRef.current) {
+                                html5QrCodeRef.current.stop().catch(err => console.error('Scanner stop error:', err));
+                                html5QrCodeRef.current.clear();
+                                html5QrCodeRef.current = null;
+                        }
+                        videoTrackRef.current = null;
+                };
+        }, [showScanner, handleScan, handleError]);
 
         // Torch toggle via MediaStream track
         const toggleTorch = useCallback(async () => {
@@ -142,15 +192,16 @@ const HomePage = () => {
                 if (!file) return;
 
                 try {
-                        const result = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
-                        handleScan({ text: result.data });
+                        const html5QrCode = new Html5Qrcode("qr-image-reader");
+                        const result = await html5QrCode.scanFile(file, false);
+                        handleScan({ text: result });
                 } catch (error) {
                         console.error('QR code scanning error:', error);
                         toast.error('Could not read QR code from image. Please try again.');
                 }
         };
 
-        const handleError = (error) => {
+        const handleError = useCallback((error) => {
                 console.error('QR Scanner Error:', error);
                 console.error('Error name:', error?.name);
                 console.error('Error message:', error?.message);
@@ -174,7 +225,7 @@ const HomePage = () => {
                         toast.error(`Camera error: ${error?.message || 'Please try again'}`);
                         console.log('Unknown camera error occurred');
                 }
-        };
+        }, []);
 
         const steps = [
                 { icon: QrCode, title: 'Scan QR', desc: 'Point your camera at the vending machine QR code', color: 'blue' },
@@ -191,6 +242,9 @@ const HomePage = () => {
 
         return (
                 <div className="mesh-gradient min-h-screen relative overflow-hidden">
+                        {/* Hidden div for image QR scanning */}
+                        <div id="qr-image-reader" style={{ display: 'none' }} />
+
                         {/* Floating background blobs */}
                         <div className="absolute top-20 -left-32 w-96 h-96 rounded-full opacity-30 animate-blob"
                                 style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.3), transparent 70%)' }} />
@@ -228,12 +282,7 @@ const HomePage = () => {
                                                 </div>
                                                 {/* Camera feed with green corner brackets */}
                                                 <div className="relative aspect-square bg-black">
-                                                        <QrReader
-                                                                constraints={{ facingMode: 'environment' }}
-                                                                onResult={handleScan}
-                                                                onError={handleError}
-                                                                className="w-full"
-                                                        />
+                                                        <div id={scannerIdRef.current} className="w-full h-full" />
                                                         {/* Corner brackets overlay */}
                                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                                                 <div className="qr-corners w-48 h-48 xs:w-56 xs:h-56 sm:w-64 sm:h-64" />
