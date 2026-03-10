@@ -53,8 +53,6 @@ import {
         Tooltip,
         Legend,
         ResponsiveContainer,
-        LineChart,
-        Line,
         AreaChart,
         Area,
 } from 'recharts';
@@ -170,7 +168,6 @@ const SeasonBadge = ({ season }) => {
 };
 
 // Chart colors
-const CHART_COLORS = ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#84cc16'];
 const STOCK_COLORS = {
         healthy: '#10b981',
         low: '#f59e0b',
@@ -616,8 +613,8 @@ const AnalyticsDashboard = ({ products, machines, lowStockProducts }) => {
                                                                                         </td>
                                                                                         <td className="px-4 py-3 text-center">
                                                                                                 <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${product.stock === 0 ? 'bg-red-100 text-red-600' :
-                                                                                                                product.stock <= 2 ? 'bg-orange-100 text-orange-600' :
-                                                                                                                        'bg-yellow-100 text-yellow-600'
+                                                                                                        product.stock <= 2 ? 'bg-orange-100 text-orange-600' :
+                                                                                                                'bg-yellow-100 text-yellow-600'
                                                                                                         }`}>
                                                                                                         {product.stock}
                                                                                                 </span>

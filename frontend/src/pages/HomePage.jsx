@@ -10,8 +10,8 @@ import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import {
         QrCode, ShoppingCart, CreditCard, Zap,
-        Camera, X, Sparkles, ChevronRight, Shield,
-        Clock, Flashlight, FlashlightOff, Image as ImageIcon,
+        Camera, X, Sparkles, ChevronRight,
+        Flashlight, FlashlightOff, Image as ImageIcon,
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import toast from 'react-hot-toast';
@@ -81,7 +81,63 @@ const HomePage = () => {
                 };
         }, [stepsVisible]);
 
-        // Move handleScan and handleError above this effect
+        // Handle QR code scan results
+        const handleScan = useCallback((result) => {
+                if (!result || scanProcessedRef.current) return;
+
+                // Synchronous guard — prevents any further processing
+                scanProcessedRef.current = true;
+
+                const scannedText = result?.text || result;
+                let machineId = null;
+
+                if (scannedText.includes('/machine/')) {
+                        const matches = scannedText.match(/\/machine\/([^/?#]+)/);
+                        machineId = matches ? matches[1] : null;
+                } else if (scannedText.startsWith('MACHINE:')) {
+                        machineId = scannedText.replace('MACHINE:', '');
+                } else if (scannedText.match(/^[a-zA-Z0-9-]+$/)) {
+                        machineId = scannedText;
+                }
+
+                if (machineId) {
+                        toast.success(`Machine detected: ${machineId}`);
+                        setShowScanner(false);
+                        navigate(`/machine/${machineId}`);
+                } else {
+                        toast.error('Invalid QR code. Please scan a vending machine QR code.');
+                        // Allow retrying after a brief cooldown
+                        setTimeout(() => { scanProcessedRef.current = false; }, 2000);
+                }
+        }, [navigate]);
+
+        // Handle camera errors
+        const handleError = useCallback((error) => {
+                console.error('QR Scanner Error:', error);
+                console.error('Error name:', error?.name);
+                console.error('Error message:', error?.message);
+
+                if (error?.name === 'NotAllowedError') {
+                        toast.error('Camera permission denied. Please enable camera access in browser settings.');
+                        console.log('Camera permission was denied by user or browser');
+                } else if (error?.name === 'NotFoundError') {
+                        toast.error('No camera found on this device.');
+                        console.log('No camera device found');
+                } else if (error?.name === 'NotReadableError') {
+                        toast.error('Camera is already in use by another app.');
+                        console.log('Camera is being used by another application');
+                } else if (error?.name === 'OverconstrainedError') {
+                        toast.error('Camera constraints not supported.');
+                        console.log('Camera constraints are not supported');
+                } else if (error?.name === 'SecurityError') {
+                        toast.error('Camera access blocked. Please use HTTPS or localhost.');
+                        console.log('Security error - HTTPS required for camera on this device');
+                } else {
+                        toast.error(`Camera error: ${error?.message || 'Please try again'}`);
+                        console.log('Unknown camera error occurred');
+                }
+        }, []);
+
         // Initialize and cleanup html5-qrcode scanner
         useEffect(() => {
                 if (!showScanner) return;
@@ -160,35 +216,6 @@ const HomePage = () => {
                 { id: 'test-machine-001', name: 'Test Machine', emoji: '🧪' },
         ];
 
-        const handleScan = useCallback((result) => {
-                if (!result || scanProcessedRef.current) return;
-
-                // Synchronous guard — prevents any further processing
-                scanProcessedRef.current = true;
-
-                const scannedText = result?.text || result;
-                let machineId = null;
-
-                if (scannedText.includes('/machine/')) {
-                        const matches = scannedText.match(/\/machine\/([^/?#]+)/);
-                        machineId = matches ? matches[1] : null;
-                } else if (scannedText.startsWith('MACHINE:')) {
-                        machineId = scannedText.replace('MACHINE:', '');
-                } else if (scannedText.match(/^[a-zA-Z0-9-]+$/)) {
-                        machineId = scannedText;
-                }
-
-                if (machineId) {
-                        toast.success(`Machine detected: ${machineId}`);
-                        setShowScanner(false);
-                        navigate(`/machine/${machineId}`);
-                } else {
-                        toast.error('Invalid QR code. Please scan a vending machine QR code.');
-                        // Allow retrying after a brief cooldown
-                        setTimeout(() => { scanProcessedRef.current = false; }, 2000);
-                }
-        }, [navigate]);
-
         const handleImageUpload = async (event) => {
                 const file = event.target.files?.[0];
                 if (!file) return;
@@ -202,32 +229,6 @@ const HomePage = () => {
                         toast.error('Could not read QR code from image. Please try again.');
                 }
         };
-
-        const handleError = useCallback((error) => {
-                console.error('QR Scanner Error:', error);
-                console.error('Error name:', error?.name);
-                console.error('Error message:', error?.message);
-
-                if (error?.name === 'NotAllowedError') {
-                        toast.error('Camera permission denied. Please enable camera access in browser settings.');
-                        console.log('Camera permission was denied by user or browser');
-                } else if (error?.name === 'NotFoundError') {
-                        toast.error('No camera found on this device.');
-                        console.log('No camera device found');
-                } else if (error?.name === 'NotReadableError') {
-                        toast.error('Camera is already in use by another app.');
-                        console.log('Camera is being used by another application');
-                } else if (error?.name === 'OverconstrainedError') {
-                        toast.error('Camera constraints not supported.');
-                        console.log('Camera constraints are not supported');
-                } else if (error?.name === 'SecurityError') {
-                        toast.error('Camera access blocked. Please use HTTPS or localhost.');
-                        console.log('Security error - HTTPS required for camera on this device');
-                } else {
-                        toast.error(`Camera error: ${error?.message || 'Please try again'}`);
-                        console.log('Unknown camera error occurred');
-                }
-        }, []);
 
         const steps = [
                 { icon: QrCode, title: 'Scan QR', desc: 'Point your camera at the vending machine QR code', color: 'blue' },
