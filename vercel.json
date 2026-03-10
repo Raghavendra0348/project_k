@@ -4,38 +4,13 @@
   "outputDirectory": "frontend/build",
   "installCommand": "cd frontend && npm install",
   "framework": null,
-  "functions": {
-    "frontend/api/*.js": {
-      "runtime": "@vercel/node@3.0.0"
-    }
-  },
   "rewrites": [
     {
-      "source": "/api/createOrder",
-      "destination": "/frontend/api/createOrder.js"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
     {
-      "source": "/api/verifyPayment",
-      "destination": "/frontend/api/verifyPayment.js"
-    },
-    {
-      "source": "/api/products",
-      "destination": "/frontend/api/products.js"
-    },
-    {
-      "source": "/api/machines",
-      "destination": "/frontend/api/machines.js"
-    },
-    {
-      "source": "/api/alerts",
-      "destination": "/frontend/api/alerts.js"
-    },
-    {
-      "source": "/api/lowstock",
-      "destination": "/frontend/api/lowstock.js"
-    },
-    {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api).*)",
       "destination": "/index.html"
     }
   ],

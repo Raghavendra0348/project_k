@@ -1,0 +1,29 @@
+# ==============================================================
+# LOCAL DEVELOPMENT ENVIRONMENT VARIABLES
+# ==============================================================
+# Copy this file to frontend/.env for local development
+# ==============================================================
+
+# Firebase Configuration (Frontend)
+REACT_APP_FIREBASE_API_KEY=AIzaSyDuE7R5NI01rQdYY5BrPKfoMqK9bcRYo84
+REACT_APP_FIREBASE_AUTH_DOMAIN=vending-machine-web.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=vending-machine-web
+REACT_APP_FIREBASE_STORAGE_BUCKET=vending-machine-web.firebasestorage.app
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=188303260362
+REACT_APP_FIREBASE_APP_ID=1:188303260362:web:bbecd754740724c0cdd233
+
+# Razorpay Configuration (Frontend - Test Mode)
+REACT_APP_RAZORPAY_KEY_ID=rzp_test_SFcjAAIXATSVHV
+
+# Environment Configuration
+REACT_APP_ENV=development
+REACT_APP_USE_EMULATOR=true
+
+# Backend API URL - localhost for local development
+REACT_APP_API_BASE_URL=http://localhost:5001/vending-machine-web/asia-south1/api
+
+# Disable payment simulation - use real Razorpay test mode
+REACT_APP_ENABLE_PAYMENT_SIMULATION=false
+
+# Emulator host - localhost for local development
+REACT_APP_EMULATOR_HOST=localhost
