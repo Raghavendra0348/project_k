@@ -6,7 +6,7 @@
  * torch toggle, animated text, and glassmorphism cards.
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
         QrCode, ShoppingCart, CreditCard, Zap,
@@ -28,12 +28,12 @@ const HomePage = () => {
         const scannerIdRef = useRef('qr-reader-' + Math.random().toString(36).substr(2, 9));
 
         // Animated text typing effect
-        const taglines = [
+        const taglines = useMemo(() => [
                 'Scan. Pay. Collect. It\'s that simple.',
                 'Contactless vending, powered by QR.',
                 'Real-time stock. Instant checkout.',
                 'Your smart vending companion.',
-        ];
+        ], []);
         const [taglineIndex, setTaglineIndex] = useState(0);
         const [displayed, setDisplayed] = useState('');
         const [isDeleting, setIsDeleting] = useState(false);
@@ -58,7 +58,8 @@ const HomePage = () => {
 
         // Intersection Observer for steps cards animation
         useEffect(() => {
-                if (!stepsRef.current) return;
+                const stepsNode = stepsRef.current;
+                if (!stepsNode) return;
 
                 const observer = new IntersectionObserver(
                         (entries) => {
@@ -71,15 +72,16 @@ const HomePage = () => {
                         { threshold: 0.1 }
                 );
 
-                observer.observe(stepsRef.current);
+                observer.observe(stepsNode);
 
                 return () => {
-                        if (stepsRef.current) {
-                                observer.unobserve(stepsRef.current);
+                        if (stepsNode) {
+                                observer.unobserve(stepsNode);
                         }
                 };
         }, [stepsVisible]);
 
+        // Move handleScan and handleError above this effect
         // Initialize and cleanup html5-qrcode scanner
         useEffect(() => {
                 if (!showScanner) return;
@@ -232,12 +234,6 @@ const HomePage = () => {
                 { icon: ShoppingCart, title: 'Browse', desc: 'View products with live stock updates', color: 'green' },
                 { icon: CreditCard, title: 'Pay', desc: 'Secure checkout via UPI, cards, or wallets', color: 'purple' },
                 { icon: Zap, title: 'Collect', desc: 'Product dispensed instantly — enjoy!', color: 'amber' },
-        ];
-
-        const stats = [
-                { value: '50+', label: 'Machines', icon: QrCode },
-                { value: '<3s', label: 'Checkout', icon: Clock },
-                { value: '100%', label: 'Secure', icon: Shield },
         ];
 
         return (

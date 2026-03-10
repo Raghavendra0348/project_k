@@ -26,14 +26,14 @@ import useProducts from '../hooks/useProducts';
 import useMachine from '../hooks/useMachine';
 
 // Services
-import { createOrder, verifyPayment, dispenseProduct } from '../services/api';
+import { createOrder, verifyPayment } from '../services/api';
 import { openRazorpayCheckout } from '../services/razorpay';
 
 // Constants
 import { ERROR_MESSAGES, SUCCESS_MESSAGES, ENABLE_PAYMENT_SIMULATION } from '../config/constants';
 
 // Icons for FilterBar
-import { Search, X, SlidersHorizontal, Package, Flame } from 'lucide-react';
+import { Search, X, Package, Flame } from 'lucide-react';
 
 /**
  * Simple FilterBar Component

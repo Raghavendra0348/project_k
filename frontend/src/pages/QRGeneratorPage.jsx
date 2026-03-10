@@ -5,7 +5,7 @@
  * Generate and download QR codes for physical placement on machines.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { Download, Copy, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
