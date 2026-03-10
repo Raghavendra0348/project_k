@@ -43,16 +43,9 @@ import {
 // ============================================
 const app = express();
 
-// Configure CORS - restrict origins in production, allow all in development
-const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
-  ? process.env.CORS_ALLOWED_ORIGINS.split(',')
-  : [];
-
+// Configure CORS - allow all origins (whitelist specific origins if needed)
 const corsOptions: cors.CorsOptions = {
-  origin:
-    process.env.NODE_ENV === 'production' && allowedOrigins.length > 0
-      ? allowedOrigins
-      : true, // Allow all origins in development
+  origin: true, // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
