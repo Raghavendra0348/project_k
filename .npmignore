@@ -1,0 +1,12 @@
+node_modules/
+functions/
+api/
+.git/
+.env
+.env.local
+*.log
+.firebase/
+emulator-data/
+build/
+dist/
+.DS_Store
