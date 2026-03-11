@@ -7,131 +7,131 @@ const admin = require('firebase-admin');
 
 // Initialize Firebase Admin once
 if (!admin.apps.length) {
-	try {
-		admin.initializeApp({
-			credential: admin.credential.cert({
-				projectId: process.env.FIREBASE_PROJECT_ID,
-				clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-				privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-			}),
-		});
-	} catch (error) {
-		console.error('Firebase initialization error:', error.message);
-	}
+        try {
+                admin.initializeApp({
+                        credential: admin.credential.cert({
+                                projectId: process.env.FIREBASE_PROJECT_ID,
+                                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                                privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+                        }),
+                });
+        } catch (error) {
+                console.error('Firebase initialization error:', error.message);
+        }
 }
 
 const db = admin.firestore();
 
 module.exports = async (req, res) => {
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-	res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-	if (req.method === 'OPTIONS') {
-		return res.status(200).end();
-	}
+        if (req.method === 'OPTIONS') {
+                return res.status(200).end();
+        }
 
-	const slug = req.query.slug || [];
-	const pathname = '/' + (Array.isArray(slug) ? slug.join('/') : slug);
-	
-	console.log(`[${new Date().toISOString()}] ${req.method} /api${pathname}`);
+        const slug = req.query.slug || [];
+        const pathname = '/' + (Array.isArray(slug) ? slug.join('/') : slug);
 
-	try {
-		// Route: GET /api/admin-products
-		if (pathname === '/admin-products' && req.method === 'GET') {
-			const { machineId } = req.query;
-			let query = db.collection('products');
+        console.log(`[${new Date().toISOString()}] ${req.method} /api${pathname}`);
 
-			if (machineId && machineId !== 'all') {
-				query = query.where('machineId', '==', machineId);
-			}
+        try {
+                // Route: GET /api/admin-products
+                if (pathname === '/admin-products' && req.method === 'GET') {
+                        const { machineId } = req.query;
+                        let query = db.collection('products');
 
-			const snapshot = await query.get();
-			const products = [];
+                        if (machineId && machineId !== 'all') {
+                                query = query.where('machineId', '==', machineId);
+                        }
 
-			snapshot.forEach((doc) => {
-				products.push({
-					id: doc.id,
-					...doc.data(),
-				});
-			});
+                        const snapshot = await query.get();
+                        const products = [];
 
-			console.log(`Retrieved ${products.length} products`);
-			return res.status(200).json({ success: true, data: products });
-		}
+                        snapshot.forEach((doc) => {
+                                products.push({
+                                        id: doc.id,
+                                        ...doc.data(),
+                                });
+                        });
 
-		// Route: GET /api/admin-machines
-		if (pathname === '/admin-machines' && req.method === 'GET') {
-			const snapshot = await db.collection('machines').get();
-			const machines = [];
+                        console.log(`Retrieved ${products.length} products`);
+                        return res.status(200).json({ success: true, data: products });
+                }
 
-			snapshot.forEach((doc) => {
-				machines.push({
-					id: doc.id,
-					...doc.data(),
-				});
-			});
+                // Route: GET /api/admin-machines
+                if (pathname === '/admin-machines' && req.method === 'GET') {
+                        const snapshot = await db.collection('machines').get();
+                        const machines = [];
 
-			console.log(`Retrieved ${machines.length} machines`);
-			return res.status(200).json({ success: true, data: machines });
-		}
+                        snapshot.forEach((doc) => {
+                                machines.push({
+                                        id: doc.id,
+                                        ...doc.data(),
+                                });
+                        });
 
-		// Route: GET /api/admin-alerts
-		if (pathname === '/admin-alerts' && req.method === 'GET') {
-			const { status } = req.query;
-			let query = db.collection('stockAlerts');
+                        console.log(`Retrieved ${machines.length} machines`);
+                        return res.status(200).json({ success: true, data: machines });
+                }
 
-			if (status && status !== 'all') {
-				query = query.where('status', '==', status);
-			}
+                // Route: GET /api/admin-alerts
+                if (pathname === '/admin-alerts' && req.method === 'GET') {
+                        const { status } = req.query;
+                        let query = db.collection('stockAlerts');
 
-			const snapshot = await query.get();
-			const alerts = [];
+                        if (status && status !== 'all') {
+                                query = query.where('status', '==', status);
+                        }
 
-			snapshot.forEach((doc) => {
-				alerts.push({
-					id: doc.id,
-					...doc.data(),
-				});
-			});
+                        const snapshot = await query.get();
+                        const alerts = [];
 
-			console.log(`Retrieved ${alerts.length} alerts`);
-			return res.status(200).json({ success: true, data: alerts });
-		}
+                        snapshot.forEach((doc) => {
+                                alerts.push({
+                                        id: doc.id,
+                                        ...doc.data(),
+                                });
+                        });
 
-		// Route: GET /api/admin-low-stock
-		if (pathname === '/admin-low-stock' && req.method === 'GET') {
-			const { threshold } = req.query;
-			const stock_threshold = threshold ? parseInt(threshold) : 10;
+                        console.log(`Retrieved ${alerts.length} alerts`);
+                        return res.status(200).json({ success: true, data: alerts });
+                }
 
-			const snapshot = await db.collection('products').where('stock', '<', stock_threshold).get();
-			const lowStockProducts = [];
+                // Route: GET /api/admin-low-stock
+                if (pathname === '/admin-low-stock' && req.method === 'GET') {
+                        const { threshold } = req.query;
+                        const stock_threshold = threshold ? parseInt(threshold) : 10;
 
-			snapshot.forEach((doc) => {
-				lowStockProducts.push({
-					id: doc.id,
-					...doc.data(),
-				});
-			});
+                        const snapshot = await db.collection('products').where('stock', '<', stock_threshold).get();
+                        const lowStockProducts = [];
 
-			console.log(`Retrieved ${lowStockProducts.length} low stock products`);
-			return res.status(200).json({ success: true, data: lowStockProducts });
-		}
+                        snapshot.forEach((doc) => {
+                                lowStockProducts.push({
+                                        id: doc.id,
+                                        ...doc.data(),
+                                });
+                        });
 
-		// Route: GET /api/health
-		if (pathname === '/health') {
-			return res.status(200).json({ success: true, status: 'OK', timestamp: new Date().toISOString() });
-		}
+                        console.log(`Retrieved ${lowStockProducts.length} low stock products`);
+                        return res.status(200).json({ success: true, data: lowStockProducts });
+                }
 
-		// Not found
-		console.log(`Path not found: /api${pathname}`);
-		return res.status(404).json({ success: false, error: `Endpoint not found: /api${pathname}`, path: pathname });
+                // Route: GET /api/health
+                if (pathname === '/health') {
+                        return res.status(200).json({ success: true, status: 'OK', timestamp: new Date().toISOString() });
+                }
 
-	} catch (error) {
-		console.error(`Error handling /api${pathname}:`, error);
-		return res.status(500).json({
-			success: false,
-			error: error.message,
-		});
-	}
+                // Not found
+                console.log(`Path not found: /api${pathname}`);
+                return res.status(404).json({ success: false, error: `Endpoint not found: /api${pathname}`, path: pathname });
+
+        } catch (error) {
+                console.error(`Error handling /api${pathname}:`, error);
+                return res.status(500).json({
+                        success: false,
+                        error: error.message,
+                });
+        }
 };
