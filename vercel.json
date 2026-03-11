@@ -4,22 +4,6 @@
         "installCommand": "true",
         "rewrites": [
                 {
-                        "source": "/api/admin-products",
-                        "destination": "/api/admin/products"
-                },
-                {
-                        "source": "/api/admin-machines",
-                        "destination": "/api/admin/machines"
-                },
-                {
-                        "source": "/api/admin-alerts",
-                        "destination": "/api/admin/alerts"
-                },
-                {
-                        "source": "/api/admin-low-stock",
-                        "destination": "/api/admin/low-stock"
-                },
-                {
                         "source": "/(.*)",
                         "destination": "/index.html"
                 }
