@@ -11,6 +11,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import useAllProducts from '../hooks/useAllProducts';
+import useAllMachines from '../hooks/useAllMachines';
 import {
         AlertTriangle,
         Package,
@@ -949,10 +951,12 @@ const StockEditModal = ({ isOpen, onClose, product, onSave }) => {
 // ============================================
 
 const AdminDashboard = () => {
+        // Use hooks for real-time data
+        const { products, loading: productsLoading } = useAllProducts();
+        const { machines, loading: machinesLoading } = useAllMachines();
+
         const [alerts, setAlerts] = useState([]);
         const [lowStockProducts, setLowStockProducts] = useState([]);
-        const [products, setProducts] = useState([]);
-        const [machines, setMachines] = useState([]);
         const [loading, setLoading] = useState(true);
         const [refreshing, setRefreshing] = useState(false);
         const [statusFilter, setStatusFilter] = useState('pending');
@@ -965,27 +969,6 @@ const AdminDashboard = () => {
         const [showProductForm, setShowProductForm] = useState(false);
         const [editingProduct, setEditingProduct] = useState(null);
         const [stockEditProduct, setStockEditProduct] = useState(null);
-
-        // Fetch machines
-        const fetchMachines = useCallback(async () => {
-                try {
-                        const response = await getAllMachines();
-                        setMachines(response.data || []);
-                } catch (error) {
-                        console.error('Error fetching machines:', error);
-                }
-        }, []);
-
-        // Fetch products
-        const fetchProducts = useCallback(async () => {
-                try {
-                        const response = await getAllProducts(selectedMachine || null);
-                        setProducts(response.data || []);
-                } catch (error) {
-                        console.error('Error fetching products:', error);
-                        toast.error('Failed to fetch products');
-                }
-        }, [selectedMachine]);
 
         // Fetch alerts
         const fetchAlerts = useCallback(async () => {
@@ -1012,16 +995,11 @@ const AdminDashboard = () => {
         useEffect(() => {
                 const loadData = async () => {
                         setLoading(true);
-                        await Promise.all([fetchMachines(), fetchProducts(), fetchAlerts(), fetchLowStock()]);
+                        await Promise.all([fetchAlerts(), fetchLowStock()]);
                         setLoading(false);
                 };
                 loadData();
-        }, [fetchMachines, fetchProducts, fetchAlerts, fetchLowStock]);
-
-        // Refetch products when machine filter changes
-        useEffect(() => {
-                fetchProducts();
-        }, [selectedMachine, fetchProducts]);
+        }, [fetchAlerts, fetchLowStock]);
 
         // Refetch alerts when status filter changes
         useEffect(() => {
@@ -1031,7 +1009,7 @@ const AdminDashboard = () => {
         // Refresh data
         const handleRefresh = async () => {
                 setRefreshing(true);
-                await Promise.all([fetchProducts(), fetchAlerts(), fetchLowStock()]);
+                await Promise.all([fetchAlerts(), fetchLowStock()]);
                 setRefreshing(false);
                 toast.success('Data refreshed');
         };
@@ -1080,7 +1058,7 @@ const AdminDashboard = () => {
                 try {
                         await deleteProduct(product.id);
                         toast.success('Product deleted');
-                        fetchProducts();
+                        // Products will auto-update from Firestore listener
                 } catch (error) {
                         toast.error('Failed to delete product');
                 }
@@ -1093,11 +1071,14 @@ const AdminDashboard = () => {
                 return date.toLocaleString();
         };
 
-        // Filter products by search
+        // Filter products by search and machine
         const filteredProducts = products.filter(
-                (p) =>
-                        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        p.category?.toLowerCase().includes(searchQuery.toLowerCase())
+                (p) => {
+                        const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                p.category?.toLowerCase().includes(searchQuery.toLowerCase());
+                        const matchesMachine = !selectedMachine || selectedMachine === 'all' || p.machineId === selectedMachine;
+                        return matchesSearch && matchesMachine;
+                }
         );
 
         // Stats
@@ -1143,7 +1124,7 @@ const AdminDashboard = () => {
 
                         {/* Main Content */}
                         <main className="max-w-7xl mx-auto px-4 py-6">
-                                {loading ? (
+                                {loading || productsLoading || machinesLoading ? (
                                         <div className="flex flex-col items-center justify-center py-20">
                                                 <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mb-4" />
                                                 <p className="text-gray-500">Loading dashboard...</p>
