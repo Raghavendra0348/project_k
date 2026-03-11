@@ -60,6 +60,5 @@ module.exports = async (req, res) => {
                         error: error.message,
                         details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
                 });
-        });
-}
+        }
 };

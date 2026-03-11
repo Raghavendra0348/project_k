@@ -65,8 +65,6 @@ import {
         resolveAlert,
         getLowStockProducts,
         checkAllStock,
-        getAllMachines,
-        getAllProducts,
         createProduct,
         updateProduct,
         deleteProduct,
@@ -1551,7 +1549,7 @@ const AdminDashboard = () => {
                                 product={editingProduct}
                                 machines={machines}
                                 onSave={() => {
-                                        fetchProducts();
+                                        // Products auto-update from Firestore listener
                                         fetchLowStock();
                                 }}
                         />
@@ -1561,7 +1559,7 @@ const AdminDashboard = () => {
                                 onClose={() => setStockEditProduct(null)}
                                 product={stockEditProduct}
                                 onSave={() => {
-                                        fetchProducts();
+                                        // Products auto-update from Firestore listener
                                         fetchLowStock();
                                 }}
                         />

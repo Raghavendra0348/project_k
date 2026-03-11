@@ -5,7 +5,3 @@
 
 const handler = require('./admin/low-stock.js');
 module.exports = handler;
-error: error.message,
-                });
-        }
-};
