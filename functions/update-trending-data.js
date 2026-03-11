@@ -13,11 +13,12 @@
 delete process.env.FIRESTORE_EMULATOR_HOST;
 
 const admin = require('firebase-admin');
+const serviceAccount = require('./serviceAccountKey.json');
 
-// Initialize with service account or default credentials
+// Initialize with service account credentials
 try {
         admin.initializeApp({
-                credential: admin.credential.applicationDefault(),
+                credential: admin.credential.cert(serviceAccount),
                 projectId: 'vending-machine-web',
         });
 } catch (e) {
