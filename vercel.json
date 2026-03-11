@@ -2,9 +2,6 @@
         "buildCommand": "cd frontend && npm install && npm run build",
         "outputDirectory": "frontend/build",
         "installCommand": "true",
-        "api": {
-                "baseUrl": "/api"
-        },
         "routes": [
                 {
                         "src": "/api/(.*)",
