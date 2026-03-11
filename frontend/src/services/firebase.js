@@ -46,8 +46,13 @@ const db = getFirestore(app);
 /**
  * Connect to Firestore emulator in development
  * This allows testing without affecting production data
+ * 
+ * Only connect to emulator when:
+ * 1. Running locally (NODE_ENV === 'development')
+ * 2. REACT_APP_USE_EMULATOR is explicitly set to 'true'
+ * 3. NOT on Vercel/production
  */
-if (process.env.REACT_APP_ENV === 'development' && process.env.REACT_APP_USE_EMULATOR === 'true') {
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development' && process.env.REACT_APP_USE_EMULATOR === 'true') {
         try {
                 // Use network IP for mobile access, localhost for desktop
                 const emulatorHost = process.env.REACT_APP_EMULATOR_HOST || '10.33.184.164';
@@ -57,6 +62,8 @@ if (process.env.REACT_APP_ENV === 'development' && process.env.REACT_APP_USE_EMU
                 // Emulator already connected (happens in hot reload)
                 console.log('Firestore emulator connection skipped (already connected)');
         }
+} else {
+        console.log(`📡 Using Production Firestore (NODE_ENV=${process.env.NODE_ENV}, REACT_APP_USE_EMULATOR=${process.env.REACT_APP_USE_EMULATOR})`);
 }
 
 // ============================================
