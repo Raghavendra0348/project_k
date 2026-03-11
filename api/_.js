@@ -174,6 +174,106 @@ module.exports = async (req, res) => {
                         return res.status(200).json({ success: true, message: 'Product deleted', id: productId });
                 }
 
+                // Route: POST /api/createOrder
+                if (pathname === '/createOrder' && req.method === 'POST') {
+                        const { productId, machineId } = req.body;
+
+                        if (!productId || !machineId) {
+                                return res.status(400).json({ success: false, error: 'productId and machineId required' });
+                        }
+
+                        // Fetch product from Firestore
+                        const productDoc = await db.collection('products').doc(productId).get();
+                        if (!productDoc.exists) {
+                                return res.status(404).json({ success: false, error: 'Product not found' });
+                        }
+
+                        const product = productDoc.data();
+
+                        // Verify product belongs to machine
+                        if (product.machineId !== machineId) {
+                                return res.status(400).json({ success: false, error: 'Product not in this machine' });
+                        }
+
+                        // Check stock
+                        if (!product.stock || product.stock <= 0) {
+                                return res.status(400).json({ success: false, error: 'Out of stock' });
+                        }
+
+                        // Create Razorpay order
+                        const Razorpay = require('razorpay');
+                        const razorpay = new Razorpay({
+                                key_id: process.env.RAZORPAY_KEY_ID,
+                                key_secret: process.env.RAZORPAY_KEY_SECRET,
+                        });
+
+                        const orderOptions = {
+                                amount: Math.round(product.price * 100), // Convert to paise
+                                currency: 'INR',
+                                receipt: `order_${productId}_${Date.now()}`,
+                                notes: {
+                                        productId,
+                                        machineId,
+                                        productName: product.name,
+                                },
+                        };
+
+                        const order = await razorpay.orders.create(orderOptions);
+
+                        // Save order to Firestore
+                        await db.collection('orders').doc(order.id).set({
+                                razorpayOrderId: order.id,
+                                productId,
+                                machineId,
+                                amount: order.amount,
+                                currency: order.currency,
+                                status: 'pending',
+                                createdAt: new Date(),
+                        });
+
+                        console.log(`Created order ${order.id} for product ${productId}`);
+                        return res.status(200).json({ success: true, order });
+                }
+
+                // Route: POST /api/verifyPayment
+                if (pathname === '/verifyPayment' && req.method === 'POST') {
+                        const { razorpayOrderId, razorpayPaymentId, razorpaySignature, productId, machineId } = req.body;
+
+                        if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+                                return res.status(400).json({ success: false, error: 'Missing payment details' });
+                        }
+
+                        // Verify signature
+                        const crypto = require('crypto');
+                        const expectedSignature = crypto
+                                .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+                                .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+                                .digest('hex');
+
+                        if (expectedSignature !== razorpaySignature) {
+                                return res.status(400).json({ success: false, error: 'Invalid payment signature' });
+                        }
+
+                        // Update order status
+                        await db.collection('orders').doc(razorpayOrderId).update({
+                                paymentId: razorpayPaymentId,
+                                status: 'completed',
+                                completedAt: new Date(),
+                        });
+
+                        // Decrement product stock
+                        const productDoc = await db.collection('products').doc(productId).get();
+                        if (productDoc.exists) {
+                                const currentStock = productDoc.data().stock || 0;
+                                await db.collection('products').doc(productId).update({
+                                        stock: Math.max(0, currentStock - 1),
+                                });
+                        }
+
+                        console.log(`Payment verified for order ${razorpayOrderId}`);
+                        return res.status(200).json({ success: true, message: 'Payment verified' });
+                }
+
                 // Route: GET /api/health
                 if (pathname === '/health') {
                         return res.status(200).json({ success: true, status: 'OK', timestamp: new Date().toISOString() });
