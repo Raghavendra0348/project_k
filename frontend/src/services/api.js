@@ -192,8 +192,8 @@ export const healthCheck = async () => {
 export const getStockAlerts = async (status = null) => {
         try {
                 const url = status
-                        ? `${API_BASE_URL}/admin/alerts?status=${status}`
-                        : `${API_BASE_URL}/admin/alerts`;
+                        ? `${API_BASE_URL}/admin-alerts?status=${status}`
+                        : `${API_BASE_URL}/admin-alerts`;
 
                 const response = await fetch(url);
                 const data = await response.json();
@@ -272,7 +272,7 @@ export const resolveAlert = async (alertId) => {
  */
 export const getLowStockProducts = async () => {
         try {
-                const response = await fetch(`${API_BASE_URL}/admin/low-stock`);
+                const response = await fetch(`${API_BASE_URL}/admin-low-stock`);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -324,7 +324,7 @@ export const checkAllStock = async () => {
  */
 export const getAllMachines = async () => {
         try {
-                const response = await fetch(`${API_BASE_URL}/admin/machines`);
+                const response = await fetch(`${API_BASE_URL}/admin-machines`);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -347,8 +347,8 @@ export const getAllMachines = async () => {
 export const getAllProducts = async (machineId = null) => {
         try {
                 const url = machineId
-                        ? `${API_BASE_URL}/admin/products?machineId=${machineId}`
-                        : `${API_BASE_URL}/admin/products`;
+                        ? `${API_BASE_URL}/admin-products?machineId=${machineId}`
+                        : `${API_BASE_URL}/admin-products`;
 
                 const response = await fetch(url);
                 const data = await response.json();

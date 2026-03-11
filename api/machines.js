@@ -3,23 +3,26 @@
  * GET /api/machines
  */
 
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+const admin = require('firebase-admin');
 
 // Initialize Firebase Admin
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  });
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+      }),
+    });
+  } catch (error) {
+    console.error('Firebase initialization error:', error.message);
+  }
 }
 
-const db = getFirestore();
+const db = admin.firestore();
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -35,7 +38,7 @@ export default async function handler(req, res) {
 
   try {
     const snapshot = await db.collection('machines').get();
-    
+
     const machines = [];
     snapshot.forEach((doc) => {
       machines.push({
@@ -44,15 +47,17 @@ export default async function handler(req, res) {
       });
     });
 
+    console.log(`[${new Date().toISOString()}] GET /api/machines - Retrieved ${machines.length} machines`);
+
     return res.status(200).json({
       success: true,
       data: machines,
     });
   } catch (error) {
-    console.error('Error fetching machines:', error);
+    console.error(`[${new Date().toISOString()}] Error fetching machines:`, error);
     return res.status(500).json({
       success: false,
-      error: `Failed to fetch machines: ${error.message}`,
+      error: error.message,
     });
   }
-}
+};
