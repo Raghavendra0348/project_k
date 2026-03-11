@@ -13,17 +13,26 @@
  * Backend API base URL
  * In development: Points to Firebase emulator
  * In production: Points to Vercel serverless functions (/api)
+ * 
+ * Priority order:
+ * 1. REACT_APP_API_BASE_URL environment variable (if set)
+ * 2. Relative /api for production (works with any deployed domain)
+ * 3. Local Firebase emulator for development
  */
 const getApiBaseUrl = () => {
-        // If explicitly set in environment, use that
+        // If explicitly set in environment, use that (highest priority)
         if (process.env.REACT_APP_API_BASE_URL) {
                 return process.env.REACT_APP_API_BASE_URL;
         }
-        // In production, use Vercel serverless functions
+
+        // Production: Use relative path (works with any domain like Vercel)
+        // This will use the same domain the app is deployed on
         if (process.env.NODE_ENV === 'production') {
                 return '/api';
         }
-        // Default for local development
+
+        // Local development: Use Firebase emulator with full path
+        // Matches local Firebase setup on port 5001
         return 'http://localhost:5001/vending-machine-web/asia-south1/api';
 };
 

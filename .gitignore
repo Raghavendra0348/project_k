@@ -49,3 +49,4 @@ serviceAccountKey.json
 # Razorpay Keys (NEVER COMMIT!)
 rzp-key.csv
 *-key.csv
+.vercel

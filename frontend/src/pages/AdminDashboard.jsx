@@ -982,12 +982,24 @@ const AdminDashboard = () => {
         const fetchLowStock = useCallback(async () => {
                 try {
                         const response = await getLowStockProducts();
-                        setLowStockProducts(response.data || []);
+                        const productsArray = response.data || [];
+
+                        // Transform API response to match component format
+                        const transformedProducts = productsArray.map(product => {
+                                // Find the machine to get its location
+                                const machine = machines.find(m => m.id === product.machineId);
+                                return {
+                                        product,
+                                        machineLocation: machine?.location || machine?.name || 'Unknown Location'
+                                };
+                        });
+
+                        setLowStockProducts(transformedProducts);
                         setThreshold(response.threshold || 3);
                 } catch (error) {
                         console.error('Error fetching low stock:', error);
                 }
-        }, []);
+        }, [machines]);
 
         // Initial data fetch
         useEffect(() => {

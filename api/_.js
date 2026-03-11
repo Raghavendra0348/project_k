@@ -306,6 +306,125 @@ module.exports = async (req, res) => {
                         return res.status(200).json({ success: true, message: 'Payment verified' });
                 }
 
+                // Route: GET /api/admin/check-stock
+                if (pathname === '/admin/check-stock' && req.method === 'GET') {
+                        try {
+                                const threshold = req.query.threshold ? parseInt(req.query.threshold) : 10;
+                                const snapshot = await db.collection('products').get();
+
+                                let alertsCreated = 0;
+                                const productIds = [];
+
+                                for (const doc of snapshot.docs) {
+                                        const product = doc.data();
+                                        if (product.stock < threshold) {
+                                                productIds.push(doc.id);
+
+                                                // Check if alert already exists
+                                                const existingAlert = await db.collection('stockAlerts')
+                                                        .where('productId', '==', doc.id)
+                                                        .where('status', '==', 'pending')
+                                                        .get();
+
+                                                if (existingAlert.empty) {
+                                                        await db.collection('stockAlerts').add({
+                                                                productId: doc.id,
+                                                                machineId: product.machineId,
+                                                                currentStock: product.stock,
+                                                                threshold: threshold,
+                                                                status: 'pending',
+                                                                createdAt: new Date(),
+                                                        });
+                                                        alertsCreated++;
+                                                }
+                                        }
+                                }
+
+                                console.log(`Stock check complete: ${alertsCreated} new alerts created`);
+                                return res.status(200).json({
+                                        success: true,
+                                        message: `Stock check complete. ${alertsCreated} new alerts created.`,
+                                        alertsCreated,
+                                        productsChecked: snapshot.docs.length
+                                });
+                        } catch (error) {
+                                console.error('Error checking stock:', error);
+                                return res.status(500).json({ success: false, error: error.message });
+                        }
+                }
+
+                // Route: PUT /api/admin/alerts/{alertId}/acknowledge
+                const alertAckMatch = pathname.match(/^\/admin\/alerts\/([a-zA-Z0-9\-]+)\/acknowledge$/);
+                if (alertAckMatch && req.method === 'PUT') {
+                        try {
+                                const alertId = alertAckMatch[1];
+
+                                await db.collection('stockAlerts').doc(alertId).update({
+                                        status: 'acknowledged',
+                                        acknowledgedAt: new Date(),
+                                });
+
+                                console.log(`Alert ${alertId} acknowledged`);
+                                return res.status(200).json({ success: true, message: 'Alert acknowledged' });
+                        } catch (error) {
+                                console.error('Error acknowledging alert:', error);
+                                return res.status(500).json({ success: false, error: error.message });
+                        }
+                }
+
+                // Route: PUT /api/admin/alerts/{alertId}/resolve
+                const alertResolveMatch = pathname.match(/^\/admin\/alerts\/([a-zA-Z0-9\-]+)\/resolve$/);
+                if (alertResolveMatch && req.method === 'PUT') {
+                        try {
+                                const alertId = alertResolveMatch[1];
+
+                                await db.collection('stockAlerts').doc(alertId).update({
+                                        status: 'resolved',
+                                        resolvedAt: new Date(),
+                                });
+
+                                console.log(`Alert ${alertId} resolved`);
+                                return res.status(200).json({ success: true, message: 'Alert resolved' });
+                        } catch (error) {
+                                console.error('Error resolving alert:', error);
+                                return res.status(500).json({ success: false, error: error.message });
+                        }
+                }
+
+                // Route: POST /api/dispense
+                if (pathname === '/dispense' && req.method === 'POST') {
+                        try {
+                                const { machineId, productId, orderId } = req.body;
+
+                                if (!machineId || !productId || !orderId) {
+                                        return res.status(400).json({
+                                                success: false,
+                                                error: 'machineId, productId, and orderId are required'
+                                        });
+                                }
+
+                                // Update order status to dispensing
+                                await db.collection('orders').doc(orderId).update({
+                                        status: 'dispensing',
+                                        dispensedAt: new Date(),
+                                });
+
+                                // TODO: Send dispense signal to ESP8266 via MQTT or HTTP
+                                console.log(`Dispense signal: Machine ${machineId}, Product ${productId}, Order ${orderId}`);
+
+                                return res.status(200).json({
+                                        success: true,
+                                        message: 'Dispense signal sent',
+                                        orderId,
+                                        machineId,
+                                        productId
+                                });
+                        } catch (error) {
+                                console.error('Error dispensing product:', error);
+                                return res.status(500).json({ success: false, error: error.message });
+                        }
+                }
+
                 // Route: GET /api/health
                 if (pathname === '/health') {
                         return res.status(200).json({ success: true, status: 'OK', timestamp: new Date().toISOString() });

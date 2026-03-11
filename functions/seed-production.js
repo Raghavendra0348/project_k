@@ -14,11 +14,14 @@
 delete process.env.FIRESTORE_EMULATOR_HOST;
 
 const admin = require('firebase-admin');
+const path = require('path');
 
-// Use application default credentials from Firebase CLI login
+// Use service account key for authentication
+const serviceAccount = require('./serviceAccountKey.json');
+
 admin.initializeApp({
         projectId: 'vending-machine-web',
-        credential: admin.credential.applicationDefault(),
+        credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
