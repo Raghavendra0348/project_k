@@ -135,6 +135,38 @@ module.exports = async (req, res) => {
                         return res.status(200).json({ success: true, data: lowStockProducts });
                 }
 
+                // Route: POST /api/admin/products - Create new product
+                if (pathname === '/admin/products' && req.method === 'POST') {
+                        const productData = req.body;
+
+                        if (!productData.name || !productData.price || !productData.machineId) {
+                                return res.status(400).json({ success: false, error: 'name, price, and machineId are required' });
+                        }
+
+                        // Generate product ID if not provided
+                        const productId = productData.id || `product-${Date.now()}`;
+
+                        // Set default values
+                        const newProduct = {
+                                name: productData.name,
+                                price: productData.price,
+                                stock: productData.stock || 0,
+                                machineId: productData.machineId,
+                                category: productData.category || 'General',
+                                description: productData.description || '',
+                                image: productData.image || '',
+                                trending: productData.trending || { isTrending: false, rank: 999, reason: '' },
+                                salesData: productData.salesData || { lastWeek: 0, trend: 'stable', percentChange: 0 },
+                                createdAt: new Date(),
+                                updatedAt: new Date(),
+                        };
+
+                        await db.collection('products').doc(productId).set(newProduct);
+
+                        console.log(`Created product ${productId}`);
+                        return res.status(201).json({ success: true, message: 'Product created', id: productId, data: newProduct });
+                }
+
                 // Route: PUT /api/admin/products/{productId}
                 const productUpdateMatch = pathname.match(/^\/admin\/products\/([a-zA-Z0-9\-]+)$/);
                 if (productUpdateMatch && req.method === 'PUT') {
