@@ -2,10 +2,24 @@
         "buildCommand": "cd frontend && npm install && npm run build",
         "outputDirectory": "frontend/build",
         "installCommand": "true",
-        "rewrites": [
+        "api": {
+                "baseUrl": "/api"
+        },
+        "routes": [
                 {
-                        "source": "/(.*)",
-                        "destination": "/index.html"
+                        "src": "/api/(.*)",
+                        "methods": [
+                                "GET",
+                                "POST",
+                                "PUT",
+                                "DELETE",
+                                "OPTIONS"
+                        ],
+                        "dest": "/api/[...slug]?slug=$1"
+                },
+                {
+                        "src": "/(.*)",
+                        "dest": "/index.html"
                 }
         ]
 }
