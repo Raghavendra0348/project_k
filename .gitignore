@@ -1,4 +1,10 @@
 # Dependencies
 node_modules/
 
+# Service Account Key (NEVER COMMIT!)
+serviceAccountKey.json
+*-service-account.json
+
+# Razorpay Keys (NEVER COMMIT!)
+
 .vercel
