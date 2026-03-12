@@ -91,7 +91,8 @@ WiFiClient plainClient;
 Servo servo;
 LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLS, LCD_ROWS);
 
-unsigned long lastPoll = 0;
+String lastProcessedDispId = ""; // Track last processed order to prevent loops
+unsigned long lastDispenseTime = 0;
 
 // =============================================
 // SETUP
@@ -151,10 +152,12 @@ void loop()
                 connectWiFi();
         }
 
-        if (millis() - lastPoll >= POLL_INTERVAL_MS)
+        // Only poll if enough time has passed since last dispense
+        unsigned long timeSinceDispense = millis() - lastDispenseTime;
+        if (timeSinceDispense >= POLL_INTERVAL_MS)
         {
                 pollDispenseQueue();
-                lastPoll = millis();
+                lastDispenseTime = millis();
         }
         yield();
 }
@@ -328,6 +331,13 @@ void pollDispenseQueue()
                 String docPath = document["name"].as<String>();
                 String dispId = docPath.substring(docPath.lastIndexOf('/') + 1);
 
+                // *** PREVENT DUPLICATE PROCESSING ***
+                if (dispId == lastProcessedDispId)
+                {
+                        Serial.println(F("(Already processed this order, skipping)"));
+                        continue;
+                }
+
                 JsonObject fields = document["fields"];
                 String productId = fields["productId"]["stringValue"] | "unknown";
                 String orderId = fields["orderId"]["stringValue"] | "unknown";
@@ -337,6 +347,9 @@ void pollDispenseQueue()
                 Serial.println("  productId  : " + productId);
                 Serial.println("  orderId    : " + orderId);
 
+                // Mark as processing immediately to prevent duplicate
+                lastProcessedDispId = dispId;
+
                 // ---- 1. Show "Order Received" on LCD ----
                 lcdShow("Order Received!", productId);
                 delay(1000);
@@ -345,16 +358,30 @@ void pollDispenseQueue()
                 dispense(productId);
 
                 // ---- 3. Update Firestore status -> completed ----
-                markCompleted(dispId);
+                bool updateSuccess = markCompleted(dispId);
 
-                // ---- 4. Show success on LCD ----
-                lcdShow("  Dispensed OK!", "  Thank you :)");
-                blinkLED(5, 100);
+                // ---- 4. Show result on LCD ----
+                if (updateSuccess)
+                {
+                        lcdShow("Dispensed OK!", "Thank you :)");
+                        blinkLED(5, 100);
+                }
+                else
+                {
+                        lcdShow("Error updating!", "Retrying...");
+                        lastProcessedDispId = ""; // Reset to retry
+                        delay(2000);
+                        continue;
+                }
+
                 delay(3000);
 
                 // ---- 5. Back to idle ----
                 lcdShow("Ready!", "Waiting orders..");
                 Serial.println(F("***** DISPENSE DONE *****\n"));
+
+                // Exit loop after processing one order
+                break;
         }
 }
 
@@ -379,10 +406,10 @@ void dispense(const String &productId)
 // =============================================
 // MARK dispense doc as completed in Firestore
 // =============================================
-void markCompleted(const String &dispId)
+bool markCompleted(const String &dispId)
 {
         Serial.println("Updating " + dispId + " -> completed");
-        lcdLine(1, "Confirming...");
+        lcdShow("Confirming...", "Updating status");
 
         HTTPClient http;
         String url = baseURL() + "/dispenseQueue/" + dispId + "?updateMask.fieldPaths=status&key=" + String(API_KEY);
@@ -394,9 +421,11 @@ void markCompleted(const String &dispId)
         String payload = "{\"fields\":{\"status\":{\"stringValue\":\"completed\"}}}";
         int code = http.PATCH(payload);
 
+        bool success = false;
         if (code == 200)
         {
                 Serial.println(F("Status -> completed OK"));
+                success = true;
         }
         else
         {
@@ -404,8 +433,12 @@ void markCompleted(const String &dispId)
                 Serial.println(code);
                 if (code > 0)
                         Serial.println(http.getString().substring(0, 200));
+                success = false;
         }
         http.end();
+
+        delay(500); // Wait for Firestore to sync
+        return success;
 }
 
 // =============================================
