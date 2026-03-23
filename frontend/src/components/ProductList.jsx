@@ -18,6 +18,7 @@ const ProductList = ({
         onBuyProduct,
         purchasingProductId,
         onRefresh,
+        demandPredictions = {},
 }) => {
         if (loading) {
                 return <ProductListSkeleton count={6} />;
@@ -86,6 +87,7 @@ const ProductList = ({
                                                 onBuy={onBuyProduct}
                                                 disabled={!machineOnline}
                                                 purchasing={purchasingProductId === product.id}
+                                                demandPrediction={demandPredictions[product.id]}
                                         />
                                 ))}
                         </div>

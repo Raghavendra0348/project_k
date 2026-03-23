@@ -3,13 +3,14 @@
  *
  * Glassmorphism product card with frosted glass effect,
  * gradient accents, and animated stock indicators.
- * Now includes trending badges and sales data.
+ * Now includes trending badges, sales data, and demand predictions.
  */
 
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Package, AlertTriangle, Flame, TrendingUp, TrendingDown, Sun, Cloud, Snowflake, Leaf, CheckCircle } from 'lucide-react';
 import { formatPrice } from '../services/razorpay';
 import { STOCK_THRESHOLDS } from '../config/constants';
+import DemandBadge from './DemandBadge';
 
 const getStockStatus = (stock) => {
         if (stock === 0) {
@@ -44,7 +45,7 @@ const getStockStatus = (stock) => {
         };
 };
 
-const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
+const ProductCard = ({ product, onBuy, disabled, purchasing, demandPrediction }) => {
         const { name, price, stock, imageUrl, _stockChanged, trending, salesData, season } = product;
         const [showAnimation, setShowAnimation] = useState(false);
 
@@ -168,6 +169,18 @@ const ProductCard = ({ product, onBuy, disabled, purchasing }) => {
                                                                 {salesData.percentChange}%
                                                         </span>
                                                 )}
+                                        </div>
+                                )}
+
+                                {/* AI Demand Prediction Badge */}
+                                {demandPrediction && (
+                                        <div className="mb-3">
+                                                <DemandBadge
+                                                        demandLevel={demandPrediction.demandLevel}
+                                                        demandScore={demandPrediction.demandScore}
+                                                        confidence={demandPrediction.confidence}
+                                                        compact={true}
+                                                />
                                         </div>
                                 )}
 

@@ -26,6 +26,7 @@ const HomePage = () => {
         const [stepsVisible, setStepsVisible] = useState(false);
         const html5QrCodeRef = useRef(null);
         const scannerIdRef = useRef('qr-reader-' + Math.random().toString(36).substr(2, 9));
+        const scannerStartedRef = useRef(false);
 
         // Animated text typing effect
         const taglines = useMemo(() => [
@@ -143,6 +144,7 @@ const HomePage = () => {
                 if (!showScanner) return;
 
                 const scannerId = scannerIdRef.current;
+                scannerStartedRef.current = false;
 
                 const startScanner = async () => {
                         try {
@@ -164,6 +166,8 @@ const HomePage = () => {
                                         }
                                 );
 
+                                scannerStartedRef.current = true;
+
                                 // Get video track for torch control
                                 const stream = html5QrCodeRef.current.getRunningTrackCameraCapabilities();
                                 if (stream) {
@@ -172,15 +176,28 @@ const HomePage = () => {
                         } catch (err) {
                                 console.error('Scanner start error:', err);
                                 handleError(err);
+                                scannerStartedRef.current = false;
                         }
                 };
 
                 startScanner();
 
                 return () => {
-                        if (html5QrCodeRef.current) {
-                                html5QrCodeRef.current.stop().catch(err => console.error('Scanner stop error:', err));
-                                html5QrCodeRef.current.clear();
+                        if (html5QrCodeRef.current && scannerStartedRef.current) {
+                                html5QrCodeRef.current.stop()
+                                        .then(() => {
+                                                html5QrCodeRef.current?.clear();
+                                        })
+                                        .catch(err => console.error('Scanner stop error:', err))
+                                        .finally(() => {
+                                                html5QrCodeRef.current = null;
+                                        });
+                        } else if (html5QrCodeRef.current) {
+                                try {
+                                        html5QrCodeRef.current.clear();
+                                } catch (err) {
+                                        console.error('Scanner clear error:', err);
+                                }
                                 html5QrCodeRef.current = null;
                         }
                         videoTrackRef.current = null;
@@ -220,13 +237,22 @@ const HomePage = () => {
                 const file = event.target.files?.[0];
                 if (!file) return;
 
+                let html5QrCode = null;
                 try {
-                        const html5QrCode = new Html5Qrcode("qr-image-reader");
-                        const result = await html5QrCode.scanFile(file, false);
+                        html5QrCode = new Html5Qrcode("qr-image-reader");
+                        const result = await html5QrCode.scanFile(file, true);
                         handleScan({ text: result });
                 } catch (error) {
                         console.error('QR code scanning error:', error);
                         toast.error('Could not read QR code from image. Please try again.');
+                } finally {
+                        if (html5QrCode) {
+                                try {
+                                        await html5QrCode.clear();
+                                } catch (e) {
+                                        console.error('Error clearing scanner:', e);
+                                }
+                        }
                 }
         };
 

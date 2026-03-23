@@ -24,6 +24,7 @@ import PaymentModal, { PAYMENT_STATUS } from '../components/PaymentModal';
 // Hooks
 import useProducts from '../hooks/useProducts';
 import useMachine from '../hooks/useMachine';
+import { useDemandPrediction } from '../hooks/useDemandPrediction';
 
 // Services
 import { createOrder, verifyPayment } from '../services/api';
@@ -144,7 +145,13 @@ const MachinePage = () => {
                 refresh: refreshProducts
         } = useProducts(machineId);
 
-        // Payment state
+        // Get AI demand predictions for products
+        const {
+                predictions: demandPredictions,
+                loading: demandLoading,
+                error: demandError,
+        } = useDemandPrediction(machineId, true, 5 * 60 * 1000); // Refresh every 5 minutes
+
         const [paymentStatus, setPaymentStatus] = useState(PAYMENT_STATUS.IDLE);
         const [purchasingProduct, setPurchasingProduct] = useState(null);
         const [paymentMessage, setPaymentMessage] = useState('');
@@ -422,6 +429,7 @@ const MachinePage = () => {
                                         onBuyProduct={handleBuyProduct}
                                         purchasingProductId={purchasingProduct?.id}
                                         onRefresh={refreshProducts}
+                                        demandPredictions={demandPredictions}
                                 />
                         </main>
 

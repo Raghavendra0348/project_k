@@ -30,6 +30,10 @@ import {
   getAllMachinesHandler,
   updateStockHandler,
 } from './adminProducts';
+import {
+  predictDemandHandler,
+  predictDemandGetHandler,
+} from './demandForecast';
 
 // Import ESP8266 sync functions (Firestore-only, no RTDB dependency)
 import {
@@ -102,6 +106,28 @@ app.post('/dispense', dispenseHandler);
  * Returns: { success: boolean, message: string }
  */
 app.post('/dispense/confirm', dispenseConfirmHandler);
+
+/**
+ * AI Demand Forecasting using Decision Tree
+ * POST /predict-demand
+ * Body: { machineId: string }
+ * Returns: Demand predictions for all products in machine
+ *
+ * Uses decision tree algorithm analyzing:
+ * - Current time of day & day of week
+ * - Product category
+ * - Historical sales trends
+ * - Current stock levels
+ * - Product pricing
+ */
+app.post('/predict-demand', predictDemandHandler);
+
+/**
+ * AI Demand Forecasting (GET variant)
+ * GET /predict-demand/:machineId
+ * Returns: Demand predictions for all products
+ */
+app.get('/predict-demand/:machineId', predictDemandGetHandler);
 
 // ============================================
 // ADMIN API ROUTES

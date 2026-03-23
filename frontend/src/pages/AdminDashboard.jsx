@@ -13,6 +13,9 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import useAllProducts from '../hooks/useAllProducts';
 import useAllMachines from '../hooks/useAllMachines';
+import { useTrendingAnalysis } from '../hooks/useTrendingAnalysis';
+import TrendingAnalyticsPanel from '../components/TrendingAnalyticsPanel';
+import TrendingBanner from '../components/TrendingBanner';
 import {
         AlertTriangle,
         Package,
@@ -952,6 +955,9 @@ const AdminDashboard = () => {
         // Use hooks for real-time data
         const { products, loading: productsLoading } = useAllProducts();
         const { machines, loading: machinesLoading } = useAllMachines();
+        
+        // Get trending analysis with decision tree
+        const trendingData = useTrendingAnalysis(products);
 
         const [alerts, setAlerts] = useState([]);
         const [lowStockProducts, setLowStockProducts] = useState([]);
@@ -1211,6 +1217,14 @@ const AdminDashboard = () => {
                                                         </div>
                                                 </div>
 
+                                                {/* Trending Banner (Decision Tree Insights) */}
+                                                {trendingData?.topTrendingProduct && (
+                                                        <TrendingBanner 
+                                                                topProduct={trendingData.topTrendingProduct}
+                                                                trendingCount={trendingData.trendingCount}
+                                                        />
+                                                )}
+
                                                 {/* Tabs */}
                                                 <div className="flex gap-2 mb-4 overflow-x-auto">
                                                         <button
@@ -1264,6 +1278,18 @@ const AdminDashboard = () => {
                                                                 <span className="flex items-center gap-2">
                                                                         <PieChartIcon className="w-4 h-4" />
                                                                         Analytics
+                                                                </span>
+                                                        </button>
+                                                        <button
+                                                                onClick={() => setActiveTab('trending')}
+                                                                className={`px-4 py-2 rounded-xl font-medium transition-all whitespace-nowrap ${activeTab === 'trending'
+                                                                        ? 'bg-orange-500 text-white'
+                                                                        : 'bg-white/50 text-gray-600 hover:bg-white/70'
+                                                                        }`}
+                                                        >
+                                                                <span className="flex items-center gap-2">
+                                                                        <Flame className="w-4 h-4" />
+                                                                        Trending (AI)
                                                                 </span>
                                                         </button>
                                                 </div>
@@ -1545,6 +1571,14 @@ const AdminDashboard = () => {
                                                                 products={products}
                                                                 machines={machines}
                                                                 lowStockProducts={lowStockProducts}
+                                                        />
+                                                )}
+
+                                                {/* Trending Tab (Decision Tree Algorithm) */}
+                                                {activeTab === 'trending' && (
+                                                        <TrendingAnalyticsPanel 
+                                                                trendingData={trendingData}
+                                                                products={products}
                                                         />
                                                 )}
                                         </>
