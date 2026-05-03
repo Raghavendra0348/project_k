@@ -1,10 +1,28 @@
 # Dependencies
 node_modules/
 
-# Service Account Key (NEVER COMMIT!)
+# Service Account Keys (NEVER COMMIT!)
 serviceAccountKey.json
 *-service-account.json
 
-# Razorpay Keys (NEVER COMMIT!)
+# Environment files with secrets (NEVER COMMIT!)
+functions/.env
+functions/.env_b
 
+# Firebase debug logs
+firebase-debug.log
+firestore-debug.log
+functions/firebase-debug.log
+functions/firestore-debug.log
+
+# Firebase local cache
+.firebase/
+
+# Frontend build output (generated, not needed in git)
+frontend/build/
+
+# Vercel
 .vercel
+
+# OS files
+.DS_Store

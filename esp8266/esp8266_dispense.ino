@@ -34,8 +34,8 @@
 // =============================================
 
 // Wi-Fi credentials
-#define WIFI_SSID "Password"     // ← your WiFi name
-#define WIFI_PASSWORD "username" // ← your WiFi password
+#define WIFI_SSID "YOUR_WIFI_NAME"       // ← ✏️ PUT YOUR WIFI NAME HERE
+#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"   // ← ✏️ PUT YOUR WIFI PASSWORD HERE
 
 // Firebase project
 #define FIREBASE_PROJECT_ID "vending-machine-web"
@@ -44,7 +44,7 @@
 // *** EMULATOR vs PRODUCTION toggle ***
 //  true  → talk to local Firestore emulator (for development)
 //  false → talk to production firestore.googleapis.com
-#define USE_EMULATOR true
+#define USE_EMULATOR false  // ✅ PRODUCTION — talks to real Firestore online
 
 // Your computer's local-network IP (run `hostname -I` on Linux)
 #define EMULATOR_HOST "10.211.191.164"
