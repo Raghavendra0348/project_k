@@ -37,7 +37,9 @@ service cloud.firestore {
     // ============================================
     match /dispenseQueue/{queueId} {
       allow read: if true;   // Machine can poll for dispense commands
-      allow write: if false; // Only server-side
+      allow update: if request.resource.data.status == "completed"; // Machine can only mark as completed
+      allow create: if false;
+      allow delete: if false;
     }
   }
 }

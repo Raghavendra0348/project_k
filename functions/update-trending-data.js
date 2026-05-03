@@ -30,12 +30,13 @@ const db = admin.firestore();
 // Trending data for products
 const trendingUpdates = {
         // Top trending products
-        'prod-001-coke': { isTrending: true, rank: 1, reason: 'Top seller this season' },
-        'prod-002-coke': { isTrending: true, rank: 1, reason: 'Top seller this season' },
-        'prod-001-sprite': { isTrending: true, rank: 2, reason: 'Popular lime soda' },
-        'prod-002-sprite': { isTrending: true, rank: 2, reason: 'Popular lime soda' },
-        'prod-001-water': { isTrending: true, rank: 3, reason: 'Essential hydration - High demand' },
-        'prod-002-water': { isTrending: true, rank: 3, reason: 'Essential hydration - High demand' },
+        'prod-001-water': { isTrending: true, rank: 1, reason: 'Essential hydration - High demand' },
+        'prod-002-water': { isTrending: true, rank: 1, reason: 'Essential hydration - High demand' },
+        'prod-001-bisleri': { isTrending: true, rank: 1, reason: 'Essential hydration - High demand' },
+        'prod-001-coke': { isTrending: true, rank: 2, reason: 'Popular cola beverage' },
+        'prod-002-coke': { isTrending: true, rank: 2, reason: 'Popular cola beverage' },
+        'prod-001-sprite': { isTrending: true, rank: 3, reason: 'Popular lime soda' },
+        'prod-002-sprite': { isTrending: true, rank: 3, reason: 'Popular lime soda' },
         'prod-001-lays': { isTrending: true, rank: 4, reason: 'Snack time favorite' },
         'prod-001-kurkure': { isTrending: true, rank: 5, reason: 'Spicy snack trending' },
         'prod-002-kurkure': { isTrending: true, rank: 5, reason: 'Spicy snack trending' },

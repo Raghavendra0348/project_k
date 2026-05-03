@@ -103,6 +103,43 @@ const useProducts = (machineId) => {
                                         }
                                 });
 
+                                // ========================================
+                                // CALCULATE TRENDING BASED ON SALES DATA
+                                // ========================================
+                                
+                                // Filter products with sales data
+                                const productsWithSales = updatedProducts.filter(p => p.salesData?.lastWeek);
+                                
+                                // Sort by sales (descending) to get top sellers
+                                const sortedBySales = [...productsWithSales].sort((a, b) => {
+                                        const aSales = a.salesData?.lastWeek || 0;
+                                        const bSales = b.salesData?.lastWeek || 0;
+                                        return bSales - aSales; // Higher sales first
+                                });
+
+                                // Mark top 5 as trending
+                                sortedBySales.slice(0, 5).forEach((product, index) => {
+                                        const productIndex = updatedProducts.findIndex(p => p.id === product.id);
+                                        if (productIndex !== -1) {
+                                                updatedProducts[productIndex].trending = {
+                                                        isTrending: true,
+                                                        rank: index + 1, // #1, #2, #3, etc.
+                                                        reason: `Top seller (${product.salesData.lastWeek} sold)`,
+                                                };
+                                        }
+                                });
+
+                                // Mark products with high growth (>10% increase) as trending if not already
+                                updatedProducts.forEach((product) => {
+                                        if (!product.trending && product.salesData?.trend === 'up' && product.salesData?.percentChange > 10) {
+                                                product.trending = {
+                                                        isTrending: true,
+                                                        rank: 999, // Low priority rank
+                                                        reason: `Trending (+${product.salesData.percentChange}% growth)`,
+                                                };
+                                        }
+                                });
+
                                 // Sort products by name (client-side)
                                 updatedProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
@@ -113,8 +150,13 @@ const useProducts = (machineId) => {
                                                 name: p.name,
                                                 category: p.category,
                                                 price: p.price,
-                                                stock: p.stock
-                                        }))
+                                                stock: p.stock,
+                                                salesLastWeek: p.salesData?.lastWeek,
+                                                trending: p.trending?.isTrending ? `#${p.trending.rank}` : 'No'
+                                        })),
+                                        trendingProducts: updatedProducts
+                                                .filter(p => p.trending?.isTrending)
+                                                .map(p => `${p.trending.rank}. ${p.name} (${p.salesData?.lastWeek} sold)`),
                                 });
 
                                 setPreviousStock(newStockValues);
