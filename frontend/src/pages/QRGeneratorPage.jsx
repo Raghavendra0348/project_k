@@ -61,9 +61,6 @@ const QRGeneratorPage = () => {
 
         const predefinedMachines = [
                 { id: 'machine-001', name: 'Building A Lobby' },
-                { id: 'machine-002', name: 'Building B Cafeteria' },
-                { id: 'machine-003', name: 'Building C Entrance' },
-                { id: 'test-machine-001', name: 'Test Machine (Dev)' },
         ];
 
         return (

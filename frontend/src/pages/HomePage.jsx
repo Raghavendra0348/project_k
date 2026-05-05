@@ -229,8 +229,6 @@ const HomePage = () => {
 
         const testMachines = [
                 { id: 'machine-001', name: 'Building A Lobby', emoji: '🏢' },
-                { id: 'machine-002', name: 'Building B Cafeteria', emoji: '🍽️' },
-                { id: 'test-machine-001', name: 'Test Machine', emoji: '🧪' },
         ];
 
         const handleImageUpload = async (event) => {
@@ -501,28 +499,7 @@ const HomePage = () => {
                                 </div>
                         </div>
 
-                        {/* Dev Tools */}
-                        {process.env.NODE_ENV === 'development' && (
-                                <div className="relative max-w-3xl mx-auto px-5 py-4">
-                                        <div className="glass-dark p-5 text-center"
-                                                style={{ border: '1px solid rgba(245,158,11,0.2)', background: 'rgba(255,251,235,0.5)' }}>
-                                                <h2 className="text-xs font-bold text-amber-700 mb-3 tracking-wide uppercase">🧪 Dev Tools</h2>
-                                                <div className="flex flex-wrap justify-center gap-2 mb-3">
-                                                        {testMachines.map((m) => (
-                                                                <Link key={m.id} to={`/machine/${m.id}`}
-                                                                        className="px-3 py-1.5 bg-white/60 backdrop-blur border border-amber-200/50 rounded-lg hover:bg-white/80 transition-all text-xs font-medium text-amber-800">
-                                                                        {m.name}
-                                                                </Link>
-                                                        ))}
-                                                </div>
-                                                <Link to="/admin/qr-generator"
-                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-xs font-semibold">
-                                                        <QrCode className="w-3.5 h-3.5" />
-                                                        QR Generator
-                                                </Link>
-                                        </div>
-                                </div>
-                        )}
+
 
 
 
